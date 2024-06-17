@@ -23,7 +23,7 @@ class Strings:
 
     class Server:
         _TEMPORARY_USERNAME = " You have been assigned [underline italic]{username}[/] as your temporary username. You can change it with [underline italic]/nick <new username>[/]."
-        _NO_CHANGE = "Your username has not changed."
+        _NO_CHANGE = " Your username has not changed."
 
         USERNAME_INITIAL_INVALID = (
             "Your [yellow]username was invalid[/]." + _TEMPORARY_USERNAME

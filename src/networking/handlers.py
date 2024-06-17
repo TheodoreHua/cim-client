@@ -142,6 +142,13 @@ class ServerHandler(GenericHandler):
                             username=data.get("username", "UNKNOWN")
                         ),
                     )
+                elif "username_invalid" in flags:
+                    self.notify(
+                        "display_system",
+                        Strings.Server.USERNAME_INITIAL_INVALID.format(
+                            username=data.get("username", "UNKNOWN")
+                        ),
+                    )
                 elif "username_taken" in flags:
                     self.notify(
                         "display_system",
