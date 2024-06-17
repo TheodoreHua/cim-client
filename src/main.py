@@ -228,5 +228,5 @@ if __name__ == "__main__":
     #         print("Invalid server type.")
     #         exit(1)
 
-    app = ChatApp(ServerHandler("http://127.0.0.1:5000"), username="abc")
+    app = ChatApp(ServerHandler("http://127.0.0.1:5000"))
     app.run()
