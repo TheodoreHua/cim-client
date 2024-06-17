@@ -1,6 +1,9 @@
+import shlex
+
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView
 
+from commands import *
 from components import *
 from networking import *
 from gvars import Strings
@@ -23,6 +26,22 @@ class ChatApp(App):
 
         # Message Log (ListView of MessageItems)
         self.messages_lv = ListView()
+
+        # Create the supported commands
+        self.commands = [
+
+        ]  # list for easy development
+        help_string = "Available Commands:\n" + Command.compile_help_string(
+            self.commands
+        )
+        self.commands.append(
+            Command(
+                "help", "Display this help message.", lambda _: (False, help_string)
+            )
+        )
+        self.commands = {
+            command.name: command for command in self.commands
+        }  # convert to dict for easy access
 
         # Register [network handler] [event handlers], if we have a network handler
         if self.network_handler is not None:
@@ -91,9 +110,29 @@ class ChatApp(App):
         """Handle a command entered by the user
 
         :param message: The raw message entered by the user (including the command prefix)
-        :return: A string to process as the new message, or None if there is nothing to send (command was private/handled)
+        :return: A string to process as the new message, or empty string if there is nothing to send (command was handled internally)
         """
-        pass
+        # Split into command and arguments
+        message = message[1:]  # remove the command prefix
+        try:
+            command_name, *args = shlex.split(message)
+        except ValueError:
+            return "Invalid command."
+
+        # Check if the command exists
+        if command_name not in self.commands:
+            self.add_message(ErrorMessage(f"Command '{command_name}' not found."))
+            return ""
+
+        # Execute the command
+        command = self.commands[command_name]
+        send, message = command.execute(args)
+        if message:  # if there is a message to send
+            if send:  # and we want to send it
+                return message  # then send it
+            # otherwise, display it locally
+            self.add_message(CommandResponseMessage(message))
+        return ""  # no message to send
 
 
 if __name__ == "__main__":

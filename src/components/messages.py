@@ -149,4 +149,7 @@ class CommandResponseMessage(GenericMessage):
     def __init__(self, message: str) -> None:
         super().__init__(message, allow_markup=True)
 
-        self.content_style_overrides = {"background": "gray", "text_style": "italic"}
+        self.content_style_overrides = {
+            "background": "gray 25%",
+            "text_style": "italic",
+        }
