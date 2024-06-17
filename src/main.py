@@ -2,7 +2,8 @@ import shlex
 from random import randint
 
 from textual.app import App, ComposeResult
-from textual.widgets import Header, ListView
+from textual.containers import Center
+from textual.widgets import Header, ListView, ProgressBar
 from rich.markup import escape
 
 from commands import *
@@ -35,6 +36,11 @@ class ChatApp(App):
         # Create the supported commands
         self.commands = [
             # Management Commands
+            Command(
+                "quit",
+                "Quit the application.",
+                lambda _: (self.exit(), (False, ""))[1],
+            ),
             Command(
                 "online",
                 "List all online users.",
@@ -197,7 +203,10 @@ class ChatApp(App):
     def add_message(self, message: GenericMessage):
         """Add a message to the message log"""
         self.messages_lv.append(message.as_item())
-        self.messages_lv.scroll_end(animate=False)
+        if (
+            not self.messages_lv.is_vertical_scrollbar_grabbed
+        ):  # if not being manually scrolled, scroll to the bottom
+            self.messages_lv.scroll_end(animate=False)
 
     def handle_command(self, message: str) -> str:
         """Handle a command entered by the user
