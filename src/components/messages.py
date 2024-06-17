@@ -6,6 +6,9 @@ from rich.markdown import Markdown
 
 
 class MessageItem(ListItem):
+    """A message item (ListItem) for use in the message log."""
+
+    # Override Default CSS for ListItem to disable the background colour (both for highlighted and non-highlighted)
     DEFAULT_CSS = """
     MessageItem {
         color: $text;
@@ -31,17 +34,26 @@ class GenericMessage(Container):
 
     def compose(
         self,
-    ) -> (
-        ComposeResult
-    ):  # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
+    ) -> ComposeResult:
+        # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
+        # TODO: Consider alternating background for readability?
         yield self._apply_styles(
             Static(renderable=self.source_message, markup=self.allow_markup)
         )
 
     def as_item(self) -> MessageItem:
+        """Return a MessageItem for this message.
+
+        :return: A MessageItem for this message
+        """
         return MessageItem(self)
 
     def _apply_styles(self, content: Static) -> Static:
+        """Apply the content style overrides to the content.
+
+        :param content: The content to apply the styles to
+        :return: The content with the styles applied, for chaining
+        """
         for key, value in self.content_style_overrides.items():
             content.styles.__setattr__(key, value)
         return content

@@ -7,18 +7,24 @@ from gvars import Strings
 
 
 class ChatApp(App):
+    """The main application for the CIM client."""
+
     def __init__(self, network_handler: GenericHandler = None, username=None) -> None:
+        """Create a new ChatApp instance
+
+        :param network_handler: The network handler to use for communication
+        :param username: The username to use when connecting to the server, or None for server default
+        """
         super().__init__()
         # noinspection PyTypeChecker
         self.title = Strings.TITLE
         self.username = username
-
-        self.messages_lv = ListView()
-        self.messages_lv.index = None
-
         self.network_handler = network_handler
 
-        # Register handlers
+        # Message Log (ListView of MessageItems)
+        self.messages_lv = ListView()
+
+        # Register [network handler] [event handlers], if we have a network handler
         if self.network_handler is not None:
             self.network_handler.subscribe(
                 "display_message",
@@ -65,18 +71,21 @@ class ChatApp(App):
             )
 
     def on_mount(self):
+        """Called when the application is mounted (ready)"""
         self.network_handler.connect(
             self.username
-        )  # avoid problems arising from app not running yet
+        )  # called here to ensure the app is ready for messages
 
     def compose(self) -> ComposeResult:
+        """Compose the application layout"""
         yield Header()
         yield self.messages_lv
         yield TextBar()
 
     def add_message(self, message: GenericMessage):
+        """Add a message to the message log"""
         self.messages_lv.append(message.as_item())
-        self.messages_lv.scroll_end()
+        self.messages_lv.scroll_end(animate=False)
 
     def handle_command(self, message: str) -> str:
         """Handle a command entered by the user
