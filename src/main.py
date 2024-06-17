@@ -1,15 +1,14 @@
 import shlex
 from random import randint
 
-from textual.app import App, ComposeResult
-from textual.containers import Center
-from textual.widgets import Header, ListView, ProgressBar
 from rich.markup import escape
+from textual.app import App, ComposeResult
+from textual.widgets import Header, ListView
 
 from commands import *
 from components import *
-from networking import *
 from gvars import Strings
+from networking import *
 
 
 class ChatApp(App):

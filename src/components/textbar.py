@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-from textual.widgets import Input
 from rich.markup import escape
+from textual.widgets import Input
 
 from components.messages import CommandResponseMessage
 from gvars import Strings

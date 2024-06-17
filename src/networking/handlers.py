@@ -1,8 +1,8 @@
-import requests
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable
 
+import requests
 import socketio
 
 from gvars import *

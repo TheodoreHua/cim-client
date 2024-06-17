@@ -1,8 +1,8 @@
+from rich.markdown import Markdown
+from rich.markup import escape
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import ListItem, Static
-from rich.markup import escape
-from rich.markdown import Markdown
 
 from gvars import Strings
 

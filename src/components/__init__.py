@@ -1,4 +1,3 @@
-from .textbar import TextBar
 from .messages import (
     GenericMessage,
     TextMessage,
@@ -9,3 +8,4 @@ from .messages import (
     ErrorMessage,
     CommandResponseMessage,
 )
+from .textbar import TextBar
