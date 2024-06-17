@@ -38,7 +38,7 @@ class GenericHandler:
         for subscriber in self._handlers[type_]:
             subscriber(*args, **kwargs)
 
-    def connect(self):
+    def connect(self, username: str = None):
         raise NotImplementedError
 
     def disconnect(self):

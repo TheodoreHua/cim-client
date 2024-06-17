@@ -75,9 +75,16 @@ class ChatApp(App):
         yield TextBar()
 
     def add_message(self, message: GenericMessage):
-        print(f"Adding message: {message}")
         self.messages_lv.append(message.as_item())
         self.messages_lv.scroll_end()
+
+    def handle_command(self, message: str) -> str:
+        """Handle a command entered by the user
+
+        :param message: The raw message entered by the user (including the command prefix)
+        :return: A string to process as the new message, or None if there is nothing to send (command was private/handled)
+        """
+        pass
 
 
 if __name__ == "__main__":
