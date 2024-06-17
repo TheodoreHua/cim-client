@@ -4,7 +4,7 @@ from textual import events
 from textual.widgets import Input
 
 from .messages import *
-from ..gvars import Strings
+from gvars import Strings
 
 if TYPE_CHECKING:  # avoid cyclic imports while allowing for type checking
     from src.main import ChatApp
@@ -30,6 +30,6 @@ class TextBar(Input, can_focus=True):
             pass
 
         # TODO
-        self.app.handle_message(TextMessage(message, self.app.username))
+        self.app.network_handler.send_message(message)
 
         self.value = ""

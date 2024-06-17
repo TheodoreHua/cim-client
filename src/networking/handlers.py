@@ -3,7 +3,7 @@ from typing import Callable
 
 import socketio
 
-from ..gvars import *
+from gvars import *
 
 
 class GenericHandler:
@@ -38,6 +38,18 @@ class GenericHandler:
         for subscriber in self._handlers[type_]:
             subscriber(*args, **kwargs)
 
+    def connect(self):
+        raise NotImplementedError
+
+    def disconnect(self):
+        raise NotImplementedError
+
+    def send_message(self, message: str):
+        raise NotImplementedError
+
+    def update_username(self, new_username: str):
+        raise NotImplementedError
+
 
 class ServerHandler(GenericHandler):
     """Handler for server (centralized) connections"""
@@ -65,7 +77,14 @@ class ServerHandler(GenericHandler):
                 if "motd" in data and data["motd"] is not None:
                     self.notify("display_motd", data["motd"])
 
-                if "username_taken" in flags:
+                if "username_missing" in flags:
+                    self.notify(
+                        "display_system",
+                        Strings.USERNAME_MISSING.format(
+                            data.get("username", "UNKNOWN")
+                        ),
+                    )
+                elif "username_taken" in flags:
                     self.notify(
                         "display_system",
                         Strings.USERNAME_TAKEN.format(data.get("username", "UNKNOWN")),
@@ -74,8 +93,6 @@ class ServerHandler(GenericHandler):
                 self.sock.disconnect()
                 if "version_missing" in flags:
                     raise ValueError("Client version missing")  # should not happen
-                if "username_missing" in flags:
-                    raise ValueError("Username missing")  # should not happen
 
         @self.sock.event
         def connect_broadcast(data: dict):
@@ -122,12 +139,13 @@ class ServerHandler(GenericHandler):
                 if "message" in data and data["message"] is not None:
                     self.notify("display_error", data["message"])
                 self.notify("handle_fatal_error", data.get("type", "UNKNOWN"))
+                self.sock.disconnect()
             else:
                 if "message" in data and data["message"] is not None:
                     self.notify("display_error", data["message"])
                 self.notify("handle_error", data.get("type", "UNKNOWN"))
 
-    def connect(self, username: str):
+    def connect(self, username: str = None):
         self.sock.connect(
             self.server_address,
             headers={"client-version": VERSION, "username": username},

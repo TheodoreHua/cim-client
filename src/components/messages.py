@@ -43,6 +43,12 @@ class GenericMessage(Container):
     def as_item(self) -> MessageItem:
         return MessageItem(self)
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} '{self.display_message}'>"
+
+    def __str__(self) -> str:
+        return self.display_message
+
 
 class TextMessage(GenericMessage):
     """A message that contains text and a sender."""
