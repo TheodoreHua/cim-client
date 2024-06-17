@@ -105,7 +105,7 @@ class ServerHandler(GenericHandler):
                 "success", False
             ):  # if the connection was successful, default to False
                 # Notify that we've connected to the server
-                self.notify("display_system", Strings.SELF_CONNECTED_TO_SERVER)
+                self.notify("display_system", Strings.Server.SELF_CONNECTED)
 
                 # Display the MOTD
                 if "motd" in data and data["motd"] is not None:
@@ -115,14 +115,16 @@ class ServerHandler(GenericHandler):
                 if "username_missing" in flags:
                     self.notify(
                         "display_system",
-                        Strings.USERNAME_MISSING.format(
+                        Strings.Server.USERNAME_MISSING.format(
                             data.get("username", "UNKNOWN")
                         ),
                     )
                 elif "username_taken" in flags:
                     self.notify(
                         "display_system",
-                        Strings.USERNAME_TAKEN.format(data.get("username", "UNKNOWN")),
+                        Strings.Server.USERNAME_TAKEN.format(
+                            data.get("username", "UNKNOWN")
+                        ),
                     )
             else:
                 self.sock.disconnect()  # disconnect from the server, to combat pesky ghost connections
@@ -138,9 +140,7 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.OTHER_CONNECTED_TO_SERVER.format(
-                    data.get("username", "UNKNOWN")
-                ),
+                Strings.Server.OTHER_CONNECTED.format(data.get("username", "UNKNOWN")),
             )
 
         @self.sock.event
@@ -157,7 +157,7 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.OTHER_DISCONNECTED_FROM_SERVER.format(
+                Strings.Server.OTHER_DISCONNECTED.format(
                     data.get("username", "UNKNOWN")
                 ),
             )
@@ -186,7 +186,7 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.USERNAME_CHANGE.format(
+                Strings.Server.USERNAME_CHANGE.format(
                     data.get("old", "UNKNOWN"), data.get("new", "UNKNOWN")
                 ),
             )

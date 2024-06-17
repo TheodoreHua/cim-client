@@ -15,7 +15,7 @@ class TextBar(Input, can_focus=True):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.placeholder = Strings.TEXT_BAR_PLACEHOLDER
+        self.placeholder = Strings.UI.TEXT_BAR_PLACEHOLDER
 
     def on_mount(self) -> None:
         """Focus on the input bar by default. (Called when the component is mounted)"""

@@ -17,7 +17,7 @@ class ChatApp(App):
         """
         super().__init__()
         # noinspection PyTypeChecker
-        self.title = Strings.TITLE
+        self.title = Strings.UI.TITLE
         self.username = username
         self.network_handler = network_handler
 
