@@ -1,3 +1,5 @@
+from enum import Enum
+
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import ListItem, Static
@@ -21,13 +23,14 @@ class MessageItem(ListItem):
 class GenericMessage(Container):
     """A generic message that can be displayed in the chat window."""
 
-    def __init__(self, display_message: str) -> None:
+    def __init__(self, display_message: str, allow_markup=False) -> None:
         super().__init__()
         self.display_message = display_message
         self.content_style_overrides = {}
+        self.allow_markup = allow_markup
 
-    def compose(self) -> ComposeResult:
-        content = Static(renderable=self.display_message, markup=False)
+    def compose(self) -> ComposeResult:  # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
+        content = Static(renderable=self.display_message, markup=self.allow_markup)
         for key, value in self.content_style_overrides.items():
             content.styles.__setattr__(key, value)
 
@@ -39,20 +42,10 @@ class GenericMessage(Container):
 
 class TextMessage(GenericMessage):
     """A message that contains text and a sender."""
-    def __init__(self, message: str, sender: str) -> None:
-        self.message = message
+    def __init__(self, sender: str, message: str) -> None:
         self.sender = sender
+        self.message = message
         super().__init__(f"{self.sender}: {self.message}")
-
-
-class FormattedTextMessage(TextMessage):
-    """A message that contains formatted text and a sender."""
-    def __init__(self, message: str, sender: str) -> None:
-        # TODO: Handle formatting
-        super().__init__(message, sender)
-
-    def compose(self) -> ComposeResult:
-        yield Static(renderable=self.display_message, markup=True)
 
 
 class MOTDMessage(GenericMessage):
@@ -77,10 +70,20 @@ class EventMessage(GenericMessage):
         }
 
 
-class SystemMessage(GenericMessage):
-    """A message that contains a system message."""
+class ServerMessage(GenericMessage):
+    """A message that contains a server message."""
     def __init__(self, message: str) -> None:
-        super().__init__(f"SYSTEM | {message}")
+        super().__init__(f"SERVER | {message}")
+
+        self.content_style_overrides = {
+            "color": "gray"
+        }
+
+
+class SystemMessage(GenericMessage):
+    """A message that contains a system message. Markup supported."""
+    def __init__(self, message: str) -> None:
+        super().__init__(f"SYSTEM | {message}", allow_markup=True)
 
         self.content_style_overrides = {
             "color": "gray"
@@ -88,9 +91,9 @@ class SystemMessage(GenericMessage):
 
 
 class ErrorMessage(GenericMessage):
-    """A message that contains an error message."""
+    """A message that contains an error message. Markup supported."""
     def __init__(self, message: str) -> None:
-        super().__init__(f"ERROR | {message}")
+        super().__init__(f"ERROR | {message}", allow_markup=True)
 
         self.content_style_overrides = {
             "color": "red",
@@ -99,9 +102,9 @@ class ErrorMessage(GenericMessage):
 
 
 class CommandResponseMessage(GenericMessage):
-    """A message that contains a response to a command."""
+    """A message that contains a response to a command. Markup supported."""
     def __init__(self, message: str) -> None:
-        super().__init__(message)
+        super().__init__(message, allow_markup=True)
 
         self.content_style_overrides = {
             "background": "gray",

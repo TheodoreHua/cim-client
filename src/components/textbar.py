@@ -4,6 +4,7 @@ from textual import events
 from textual.widgets import Input
 
 from .messages import *
+from ..gvars import Strings
 
 if TYPE_CHECKING:  # avoid cyclic imports while allowing for type checking
     from src.main import ChatApp
@@ -11,6 +12,10 @@ if TYPE_CHECKING:  # avoid cyclic imports while allowing for type checking
 
 class TextBar(Input, can_focus=True):
     app: 'ChatApp'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.placeholder = Strings.TEXT_BAR_PLACEHOLDER
 
     def on_mount(self, event: events.Mount) -> None:
         self.focus()

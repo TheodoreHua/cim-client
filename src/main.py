@@ -2,13 +2,15 @@ from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView
 
 from components import *
+from networking import *
+from gvars import Strings
 
 
 class ChatApp(App):
     def __init__(self) -> None:
         super().__init__()
         # noinspection PyTypeChecker
-        self.title = "CIM Client"
+        self.title = Strings.TITLE
         self.username = "Anonymous"
 
         self.messages_lv = ListView()
