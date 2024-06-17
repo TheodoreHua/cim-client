@@ -29,7 +29,11 @@ class GenericMessage(Container):
         self.content_style_overrides = {}
         self.allow_markup = allow_markup
 
-    def compose(self) -> ComposeResult:  # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
+    def compose(
+        self,
+    ) -> (
+        ComposeResult
+    ):  # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
         content = Static(renderable=self.display_message, markup=self.allow_markup)
         for key, value in self.content_style_overrides.items():
             content.styles.__setattr__(key, value)
@@ -42,6 +46,7 @@ class GenericMessage(Container):
 
 class TextMessage(GenericMessage):
     """A message that contains text and a sender."""
+
     def __init__(self, sender: str, message: str) -> None:
         self.sender = sender
         self.message = message
@@ -50,17 +55,19 @@ class TextMessage(GenericMessage):
 
 class MOTDMessage(GenericMessage):
     """A message that contains the message of the day from a server."""
+
     def __init__(self, message: str) -> None:
         super().__init__(f"MOTD: {message}")
 
         self.content_style_overrides = {
             "text_align": "center",
-            "text_style": "italic underline"
+            "text_style": "italic underline",
         }
 
 
 class EventMessage(GenericMessage):
     """A message that contains an event notification message."""
+
     def __init__(self, message: str) -> None:
         super().__init__(f"EVENT | {message}")
 
@@ -72,26 +79,25 @@ class EventMessage(GenericMessage):
 
 class ServerMessage(GenericMessage):
     """A message that contains a server message."""
+
     def __init__(self, message: str) -> None:
         super().__init__(f"SERVER | {message}")
 
-        self.content_style_overrides = {
-            "color": "gray"
-        }
+        self.content_style_overrides = {"color": "gray"}
 
 
 class SystemMessage(GenericMessage):
     """A message that contains a system message. Markup supported."""
+
     def __init__(self, message: str) -> None:
         super().__init__(f"SYSTEM | {message}", allow_markup=True)
 
-        self.content_style_overrides = {
-            "color": "gray"
-        }
+        self.content_style_overrides = {"color": "gray"}
 
 
 class ErrorMessage(GenericMessage):
     """A message that contains an error message. Markup supported."""
+
     def __init__(self, message: str) -> None:
         super().__init__(f"ERROR | {message}", allow_markup=True)
 
@@ -103,10 +109,8 @@ class ErrorMessage(GenericMessage):
 
 class CommandResponseMessage(GenericMessage):
     """A message that contains a response to a command. Markup supported."""
+
     def __init__(self, message: str) -> None:
         super().__init__(message, allow_markup=True)
 
-        self.content_style_overrides = {
-            "background": "gray",
-            "text_style": "italic"
-        }
+        self.content_style_overrides = {"background": "gray", "text_style": "italic"}

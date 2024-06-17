@@ -11,7 +11,7 @@ if TYPE_CHECKING:  # avoid cyclic imports while allowing for type checking
 
 
 class TextBar(Input, can_focus=True):
-    app: 'ChatApp'
+    app: "ChatApp"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

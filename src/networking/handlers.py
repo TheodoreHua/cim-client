@@ -8,6 +8,7 @@ from ..gvars import *
 
 class GenericHandler:
     """Generic handler for connections - should not be used directly"""
+
     def __init__(self):
         self._handlers = defaultdict(list)
         self._expected_types = (
@@ -20,23 +21,23 @@ class GenericHandler:
             "handle_error",
             "handle_fatal_error",
         )
-    
+
     def subscribe(self, type_: str, subscriber: Callable):
         if type_ not in self._expected_types:
             raise ValueError(f"Invalid type: {type_}")
         self._handlers[type_].append(subscriber)
-    
+
     def unsubscribe(self, type_: str, subscriber: Callable):
         if type_ not in self._expected_types:
             raise ValueError(f"Invalid type: {type_}")
         self._handlers[type_].remove(subscriber)
-        
+
     def notify(self, type_: str, *args, **kwargs):
         if type_ not in self._expected_types:
             raise ValueError(f"Invalid type: {type_}")
         for subscriber in self._handlers[type_]:
             subscriber(*args, **kwargs)
-        
+
 
 class ServerHandler(GenericHandler):
     """Handler for server (centralized) connections"""
@@ -48,51 +49,73 @@ class ServerHandler(GenericHandler):
         :param server_address: The address of the server to connect to
         """
         super().__init__()
-        
+
         self.sock = socketio.Client()
         self.server_address = server_address
-        
+
         @self.sock.event
         def connect():
             pass  # TODO
-        
+
         @self.sock.event
         def connect_response(data: dict):
             flags = data.get("flags", [])
             if data.get("success", False):
-                self.notify("display_system", Strings.SELF_CONNECTED_TO_SERVER)                
+                self.notify("display_system", Strings.SELF_CONNECTED_TO_SERVER)
                 if "motd" in data and data["motd"] is not None:
                     self.notify("display_motd", data["motd"])
 
                 if "username_taken" in flags:
-                    self.notify("display_system", Strings.USERNAME_TAKEN.format(data.get("username", "UNKNOWN")))
+                    self.notify(
+                        "display_system",
+                        Strings.USERNAME_TAKEN.format(data.get("username", "UNKNOWN")),
+                    )
             else:
                 self.sock.disconnect()
                 if "version_missing" in flags:
                     raise ValueError("Client version missing")  # should not happen
                 if "username_missing" in flags:
                     raise ValueError("Username missing")  # should not happen
-        
+
         @self.sock.event
         def connect_broadcast(data: dict):
-            self.notify("display_event", Strings.OTHER_CONNECTED_TO_SERVER.format(data.get("username", "UNKNOWN")))
-        
+            self.notify(
+                "display_event",
+                Strings.OTHER_CONNECTED_TO_SERVER.format(
+                    data.get("username", "UNKNOWN")
+                ),
+            )
+
         @self.sock.event
         def disconnect():
             pass  # TODO
-        
+
         @self.sock.event
         def disconnect_broadcast(data: dict):
-            self.notify("display_event", Strings.OTHER_DISCONNECTED_FROM_SERVER.format(data.get("username", "UNKNOWN")))
-        
+            self.notify(
+                "display_event",
+                Strings.OTHER_DISCONNECTED_FROM_SERVER.format(
+                    data.get("username", "UNKNOWN")
+                ),
+            )
+
         @self.sock.event
         def message_broadcast(data: dict):
-            self.notify("display_message", data.get("sender", "UNKNOWN"), data.get("message", "UNKNOWN"))
-        
+            self.notify(
+                "display_message",
+                data.get("sender", "UNKNOWN"),
+                data.get("message", "UNKNOWN"),
+            )
+
         @self.sock.event
         def username_update_broadcast(data: dict):
-            self.notify("display_event", Strings.USERNAME_CHANGE.format(data.get("old", "UNKNOWN"), data.get("new", "UNKNOWN")))
-        
+            self.notify(
+                "display_event",
+                Strings.USERNAME_CHANGE.format(
+                    data.get("old", "UNKNOWN"), data.get("new", "UNKNOWN")
+                ),
+            )
+
         @self.sock.event
         def global_error(data: dict):
             if data.get("fatal", False):
@@ -105,7 +128,10 @@ class ServerHandler(GenericHandler):
                 self.notify("handle_error", data.get("type", "UNKNOWN"))
 
     def connect(self, username: str):
-        self.sock.connect(self.server_address, headers={"client-version": VERSION, "username": username})
+        self.sock.connect(
+            self.server_address,
+            headers={"client-version": VERSION, "username": username},
+        )
 
     def disconnect(self):
         self.sock.disconnect()
