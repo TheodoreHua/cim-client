@@ -10,7 +10,7 @@ class Strings:
 
         class MessageTypes:
             TEXT = "{}: {}"  # markdown supported
-            MOTD = "[bold]MOTD:[/]: [italic]{}[/]"  # markup supported, center-aligned, underlined
+            MOTD = "[bold]MOTD[/]: [italic]{}[/]"  # markup supported, center-aligned, underlined
             EVENT = "EVENT | {}"  # gray, italic
             SERVER = "SERVER | {}"  # gray
             SYSTEM = "SYSTEM | {}"  # markup supported, gray
