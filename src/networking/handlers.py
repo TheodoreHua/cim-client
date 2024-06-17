@@ -21,6 +21,7 @@ class GenericHandler:
         "handle_disconnect",
         "handle_error",
         "handle_fatal_error",
+        "set_length_limit",
     )
 
     def __init__(self):
@@ -104,6 +105,7 @@ class ServerHandler(GenericHandler):
             :param data: The data sent by the server, expected:
                 | success: Whether the connection was successful
                 | motd: The message of the day
+                | length_limit: The maximum message length (or -1 for unlimited)
                 | flags: Any flags that were set
                 | username: The username that was assigned to the client
             """
@@ -126,19 +128,22 @@ class ServerHandler(GenericHandler):
                 if "motd" in data and data["motd"] is not None:
                     self.notify("display_motd", data["motd"])
 
+                if "length_limit" in data:
+                    self.notify("set_length_limit", data["length_limit"])
+
                 # Handle username-related flags
                 if "username_missing" in flags:
                     self.notify(
                         "display_system",
                         Strings.Server.USERNAME_MISSING.format(
-                            data.get("username", "UNKNOWN")
+                            username=data.get("username", "UNKNOWN")
                         ),
                     )
                 elif "username_taken" in flags:
                     self.notify(
                         "display_system",
                         Strings.Server.USERNAME_TAKEN.format(
-                            data.get("username", "UNKNOWN")
+                            username=data.get("username", "UNKNOWN")
                         ),
                     )
             else:
@@ -155,7 +160,9 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.Server.USER_CONNECTED.format(data.get("username", "UNKNOWN")),
+                Strings.Server.USER_CONNECTED.format(
+                    username=data.get("username", "UNKNOWN")
+                ),
             )
 
         @self.sock.event
@@ -174,7 +181,7 @@ class ServerHandler(GenericHandler):
             self.notify(
                 "display_event",
                 Strings.Server.USER_DISCONNECTED.format(
-                    data.get("username", "UNKNOWN")
+                    username=data.get("username", "UNKNOWN")
                 ),
             )
 
@@ -203,7 +210,7 @@ class ServerHandler(GenericHandler):
             self.notify(
                 "display_event",
                 Strings.Server.USERNAME_CHANGE.format(
-                    data.get("old", "UNKNOWN"), data.get("new", "UNKNOWN")
+                    old=data.get("old", "UNKNOWN"), new=data.get("new", "UNKNOWN")
                 ),
             )
 
@@ -249,6 +256,7 @@ class ServerHandler(GenericHandler):
 
     def update_username(self, new_username: str):
         self.sock.emit("username_update", new_username)
+        self.sock.connection_headers["username"] = new_username
 
 
 class P2PHandler(GenericHandler):

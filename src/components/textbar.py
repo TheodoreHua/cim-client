@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
 
 from textual.widgets import Input
+from rich.markup import escape
 
+from components.messages import CommandResponseMessage
 from gvars import Strings
 
 if TYPE_CHECKING:  # avoid cyclic imports while allowing for type checking
@@ -16,6 +18,7 @@ class TextBar(Input, can_focus=True):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.placeholder = Strings.UI.TEXT_BAR_PLACEHOLDER
+        self.max_message_length = None
 
     def on_mount(self) -> None:
         """Focus on the input bar by default. (Called when the component is mounted)"""
@@ -30,7 +33,15 @@ class TextBar(Input, can_focus=True):
         if message.startswith("/"):
             message = self.app.handle_command(message)
 
-        if message:
+        if self.max_message_length and len(message) > self.max_message_length:
+            self.app.add_message(
+                CommandResponseMessage(
+                    Strings.UI.MESSAGE_TOO_LONG.format(
+                        max_length=self.max_message_length, message=escape(message)
+                    )
+                )
+            )
+        elif message:
             self.app.network_handler.send_message(message)
 
         self.value = ""
@@ -44,3 +55,6 @@ class TextBar(Input, can_focus=True):
         # noinspection PyTypeChecker
         self.disabled = True
         self.placeholder = Strings.UI.TEXT_BAR_DISABLED_PLACEHOLDER
+
+    def set_length_limit(self, limit: int):
+        self.max_message_length = None if limit == -1 else limit

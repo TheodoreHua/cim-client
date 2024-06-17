@@ -80,7 +80,9 @@ class TextMessage(MarkdownMessage):
     def __init__(self, sender: str, message: str) -> None:
         self.sender = sender
         self.message = message
-        super().__init__(Strings.UI.MessageTypes.TEXT.format(sender, message))
+        super().__init__(
+            Strings.UI.MessageTypes.TEXT.format(sender=sender, message=message)
+        )
 
 
 class MOTDMessage(GenericMessage):
@@ -88,12 +90,13 @@ class MOTDMessage(GenericMessage):
 
     def __init__(self, message: str) -> None:
         super().__init__(
-            Strings.UI.MessageTypes.MOTD.format(escape(message)), allow_markup=True
+            Strings.UI.MessageTypes.MOTD.format(message=escape(message)),
+            allow_markup=True,
         )
 
         self.content_style_overrides = {
             "text_align": "center",
-            "text_style": "underline",
+            "text_style": "overline underline",
         }
 
 
@@ -101,7 +104,7 @@ class EventMessage(GenericMessage):
     """A message that contains an event notification message."""
 
     def __init__(self, message: str) -> None:
-        super().__init__(Strings.UI.MessageTypes.EVENT.format(message))
+        super().__init__(Strings.UI.MessageTypes.EVENT.format(message=message))
 
         self.content_style_overrides = {
             "color": "gray",
@@ -113,7 +116,7 @@ class ServerMessage(MarkdownMessage):
     """A message that contains a server message. Markdown supported."""
 
     def __init__(self, message: str) -> None:
-        super().__init__(Strings.UI.MessageTypes.SERVER.format(message))
+        super().__init__(Strings.UI.MessageTypes.SERVER.format(message=message))
 
         self.content_style_overrides = {"color": "gray"}
 
@@ -123,7 +126,7 @@ class SystemMessage(GenericMessage):
 
     def __init__(self, message: str) -> None:
         super().__init__(
-            Strings.UI.MessageTypes.SYSTEM.format(message), allow_markup=True
+            Strings.UI.MessageTypes.SYSTEM.format(message=message), allow_markup=True
         )
 
         self.content_style_overrides = {"color": "gray"}
@@ -134,7 +137,7 @@ class ErrorMessage(GenericMessage):
 
     def __init__(self, message: str) -> None:
         super().__init__(
-            Strings.UI.MessageTypes.ERROR.format(message), allow_markup=True
+            Strings.UI.MessageTypes.ERROR.format(message=message), allow_markup=True
         )
 
         self.content_style_overrides = {

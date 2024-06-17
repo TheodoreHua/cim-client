@@ -1,4 +1,5 @@
 import shlex
+from random import randint
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView
@@ -32,6 +33,16 @@ class ChatApp(App):
 
         # Create the supported commands
         self.commands = [
+            # Management Commands
+            Command(
+                "online",
+                "List all online users.",
+                lambda _: (
+                    False,
+                    "Online Users:\n" + "\n".join(self.network_handler.get_online()),
+                ),
+            ),
+            # User Commands
             Command(
                 "nick",
                 "Change your username.",
@@ -40,6 +51,31 @@ class ChatApp(App):
                     (False, ""),
                 )[1],
                 "<new username>",
+            ),
+            Command(
+                "clear",
+                "Clear the message log.",
+                lambda _: (self.messages_lv.clear(), (False, ""))[1],
+            ),
+            # Internal Utility Commands
+            Command(
+                "roll",
+                "Roll a die",
+                lambda args: (
+                    False,
+                    (
+                        f"Your d{int(args[0])} roll: {randint(1, int(args[0])):,}"
+                        if len(args) == 1 and args[0].isnumeric() and int(args[0]) > 0
+                        else f"Your d6 roll: {randint(1, 6)}"
+                    ),
+                ),
+                "[sides]",
+            ),
+            # Message Utility & Emote Commands
+            Command(
+                "me",
+                "Sends a message as an action (italicized)",
+                lambda args: (True, f"_{' '.join(args)}_"),
             ),
             Command(
                 "shrug",
@@ -51,30 +87,21 @@ class ChatApp(App):
                 "<message>",
             ),
             Command(
-                "me",
-                "Sends a message as an action (italicized)",
-                lambda args: (True, f"_{' '.join(args)}_"),
-            ),
-            Command(
                 "flip",
                 "Adds a flip to the end of your message",
                 lambda args: (
                     True,
                     rf"{' '.join(args) + (' ' if len(args) > 0 else '')}(╯°□°）╯︵ ┻━┻",
                 ),
+                "<message>",
             ),
             Command(
-                "online",
-                "List all online users.",
-                lambda _: (
-                    False,
-                    "Online Users:\n" + "\n".join(self.network_handler.get_online()),
+                "unflip",
+                "Adds an unflip to the end of your message",
+                lambda args: (
+                    True,
+                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}┬─┬ ノ( ゜-゜ノ)",
                 ),
-            ),
-            Command(
-                "clear",
-                "Clear the message log.",
-                lambda _: (self.messages_lv.clear(), (False, ""))[1],
             ),
         ]  # list for easy development
         # noinspection PyUnusedLocal -- help_string is used in the lambda
@@ -141,6 +168,12 @@ class ChatApp(App):
             self.network_handler.subscribe(
                 "handle_fatal_error",
                 lambda: print("Temporary fatal error handler called."),
+            )
+            self.network_handler.subscribe(
+                "set_length_limit",
+                lambda limit: self.call_from_thread(
+                    lambda: self.text_bar.set_length_limit(limit)
+                ),
             )
 
     def on_mount(self):
