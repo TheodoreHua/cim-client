@@ -1,8 +1,7 @@
-from enum import Enum
-
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.widgets import ListItem, Static
+from rich.markup import escape
 
 
 class MessageItem(ListItem):
@@ -63,11 +62,13 @@ class MOTDMessage(GenericMessage):
     """A message that contains the message of the day from a server."""
 
     def __init__(self, message: str) -> None:
-        super().__init__(f"MOTD: {message}")
+        super().__init__(
+            f"[bold]MOTD[/bold]: [italic]{escape(message)}[/]", allow_markup=True
+        )
 
         self.content_style_overrides = {
             "text_align": "center",
-            "text_style": "italic underline",
+            "text_style": "underline",
         }
 
 
