@@ -34,3 +34,13 @@ class TextBar(Input, can_focus=True):
             self.app.network_handler.send_message(message)
 
         self.value = ""
+
+    def enable(self):
+        # noinspection PyTypeChecker
+        self.disabled = False
+        self.placeholder = Strings.UI.TEXT_BAR_PLACEHOLDER
+
+    def disable(self):
+        # noinspection PyTypeChecker
+        self.disabled = True
+        self.placeholder = Strings.UI.TEXT_BAR_DISABLED_PLACEHOLDER

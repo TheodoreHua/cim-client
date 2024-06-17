@@ -7,6 +7,9 @@ class Strings:
     class UI:
         TITLE = f"CIM Chat (v{VERSION})"
         TEXT_BAR_PLACEHOLDER = "Type your message here..."
+        TEXT_BAR_DISABLED_PLACEHOLDER = (
+            "You are currently disconnected from the server."
+        )
 
         class MessageTypes:
             TEXT = "{}: {}"  # markdown supported
@@ -19,9 +22,9 @@ class Strings:
     # ! SERVER COMMUNICATION
     class Server:
         USERNAME_MISSING = "You did not provide a username. You have been assigned [italic]{}[/] as your temporary username. You can change it with [italic]/nick <new_username>[/]."
-        USERNAME_TAKEN = "Your username was [underline]already taken[/underline. You have been assigned [italic]{}[/] as your temporary username. You can change it with [italic]/nick <new_username>[/]."
-        SELF_CONNECTED = "Connected to server."
-        OTHER_CONNECTED = "{} has connected to the server."
-        SELF_DISCONNECTED = "Disconnected from server."
-        OTHER_DISCONNECTED = "{} has disconnected from the server."
+        USERNAME_TAKEN = "Your username was [underline]already taken[/]. You have been assigned [italic]{}[/] as your temporary username. You can change it with [italic]/nick <new_username>[/]."
+        CONNECTION_ESTABLISHED = "Connected to server."
+        CONNECTION_DROPPED = "Disconnected from server."
+        USER_CONNECTED = "{} has connected to the server."
+        USER_DISCONNECTED = "{} has disconnected from the server."
         USERNAME_CHANGE = "{}'s username has been changed to {}."

@@ -27,6 +27,9 @@ class ChatApp(App):
         # Message Log (ListView of MessageItems)
         self.messages_lv = ListView()
 
+        # Message Bar
+        self.text_bar = TextBar()
+
         # Create the supported commands
         self.commands = [
             Command(
@@ -36,7 +39,37 @@ class ChatApp(App):
                     self.network_handler.update_username(args[0]),
                     (False, ""),
                 )[1],
-                "<new_username>",
+                "<new username>",
+            ),
+            Command(
+                "shrug",
+                "Adds a shrug to the end of your message",
+                lambda args: (
+                    True,
+                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}¯\\\_(ツ)\_/¯",
+                ),
+                "<message>",
+            ),
+            Command(
+                "me",
+                "Sends a message as an action (italicized)",
+                lambda args: (True, f"_{' '.join(args)}_"),
+            ),
+            Command(
+                "flip",
+                "Adds a flip to the end of your message",
+                lambda args: (
+                    True,
+                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}(╯°□°）╯︵ ┻━┻",
+                ),
+            ),
+            Command(
+                "online",
+                "List all online users.",
+                lambda _: (
+                    False,
+                    "Online Users:\n" + "\n".join(self.network_handler.get_online()),
+                ),
             ),
             Command(
                 "clear",
@@ -46,7 +79,7 @@ class ChatApp(App):
         ]  # list for easy development
         # noinspection PyUnusedLocal -- help_string is used in the lambda
         help_string = "Available Commands:\n" + Command.compile_help_string(
-            self.commands
+            sorted(self.commands, key=lambda x: x.name)
         )
         self.commands.append(
             Command(
@@ -96,6 +129,13 @@ class ChatApp(App):
                 ),
             )
             self.network_handler.subscribe(
+                "handle_reconnect", lambda: self.call_from_thread(self.text_bar.enable)
+            )
+            self.network_handler.subscribe(
+                "handle_disconnect",
+                lambda: self.call_from_thread(self.text_bar.disable),
+            )
+            self.network_handler.subscribe(
                 "handle_error", lambda: print("Temporary error handler called.")
             )
             self.network_handler.subscribe(
@@ -113,7 +153,7 @@ class ChatApp(App):
         """Compose the application layout"""
         yield Header()
         yield self.messages_lv
-        yield TextBar()
+        yield self.text_bar
 
     def add_message(self, message: GenericMessage):
         """Add a message to the message log"""
@@ -188,5 +228,5 @@ if __name__ == "__main__":
     #         print("Invalid server type.")
     #         exit(1)
 
-    app = ChatApp(ServerHandler("http://127.0.0.1:5000"))
+    app = ChatApp(ServerHandler("http://127.0.0.1:5000"), username="abc")
     app.run()

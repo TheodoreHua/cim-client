@@ -1,3 +1,4 @@
+import requests
 from collections import defaultdict
 from typing import Callable
 
@@ -9,34 +10,37 @@ from gvars import *
 class GenericHandler:
     """Generic handler for connections - should not be used directly"""
 
+    EXPECTED_TYPES = (
+        "display_message",
+        "display_motd",
+        "display_event",
+        "display_server",
+        "display_system",
+        "display_error",
+        "handle_reconnect",
+        "handle_disconnect",
+        "handle_error",
+        "handle_fatal_error",
+    )
+
     def __init__(self):
         self._handlers = defaultdict(list)
-        self._expected_types = (
-            "display_message",
-            "display_motd",
-            "display_event",
-            "display_server",
-            "display_system",
-            "display_error",
-            "handle_error",
-            "handle_fatal_error",
-        )
 
     def subscribe(self, type_: str, subscriber: Callable):
         """Subscribe to a specific event type. Event should be one of the expected types."""
-        if type_ not in self._expected_types:
+        if type_ not in self.EXPECTED_TYPES:
             raise ValueError(f"Invalid type: {type_}")
         self._handlers[type_].append(subscriber)
 
     def unsubscribe(self, type_: str, subscriber: Callable):
         """Unsubscribe from a specific event type. Event should be one of the expected types."""
-        if type_ not in self._expected_types:
+        if type_ not in self.EXPECTED_TYPES:
             raise ValueError(f"Invalid type: {type_}")
         self._handlers[type_].remove(subscriber)
 
     def notify(self, type_: str, *args, **kwargs):
         """Notify all subscribers of a specific event type. Event should be one of the expected types."""
-        if type_ not in self._expected_types:
+        if type_ not in self.EXPECTED_TYPES:
             raise ValueError(f"Invalid type: {type_}")
         for subscriber in self._handlers[type_]:
             subscriber(*args, **kwargs)
@@ -50,6 +54,10 @@ class GenericHandler:
 
     def disconnect(self):
         """Disconnect from the [P2P] server."""
+        raise NotImplementedError
+
+    def get_online(self):
+        """Get a list of online users from the [P2P] server."""
         raise NotImplementedError
 
     def send_message(self, message: str):
@@ -81,6 +89,7 @@ class ServerHandler(GenericHandler):
         # Create a new socket.io client
         self.sock = socketio.Client()
         self.server_address = server_address
+        self._first_connect = True
 
         # Register socket.io event handlers
         @self.sock.event
@@ -104,8 +113,14 @@ class ServerHandler(GenericHandler):
             if data.get(
                 "success", False
             ):  # if the connection was successful, default to False
+                # Notify if this is a reconnect
+                if not self._first_connect:
+                    self.notify("handle_reconnect")
+                else:
+                    self._first_connect = False
+
                 # Notify that we've connected to the server
-                self.notify("display_system", Strings.Server.SELF_CONNECTED)
+                self.notify("display_system", Strings.Server.CONNECTION_ESTABLISHED)
 
                 # Display the MOTD
                 if "motd" in data and data["motd"] is not None:
@@ -140,13 +155,14 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.Server.OTHER_CONNECTED.format(data.get("username", "UNKNOWN")),
+                Strings.Server.USER_CONNECTED.format(data.get("username", "UNKNOWN")),
             )
 
         @self.sock.event
         def disconnect():
             """Called upon disconnection from the server."""
-            pass  # TODO
+            self.notify("handle_disconnect")
+            self.notify("display_system", Strings.Server.CONNECTION_DROPPED)
 
         @self.sock.event
         def disconnect_broadcast(data: dict):
@@ -157,7 +173,7 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.Server.OTHER_DISCONNECTED.format(
+                Strings.Server.USER_DISCONNECTED.format(
                     data.get("username", "UNKNOWN")
                 ),
             )
@@ -218,6 +234,15 @@ class ServerHandler(GenericHandler):
 
     def disconnect(self):
         self.sock.disconnect()
+
+    def get_online(self):
+        try:
+            r = requests.get(f"{self.server_address}/online")
+            if not r.ok or not r.json():
+                return []
+            return sorted(r.json())
+        except requests.RequestException:
+            return []
 
     def send_message(self, message: str):
         self.sock.emit("message", {"message": message})
