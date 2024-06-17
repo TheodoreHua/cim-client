@@ -140,11 +140,6 @@ class ErrorMessage(GenericMessage):
             Strings.UI.MessageTypes.ERROR.format(message=message), allow_markup=True
         )
 
-        self.content_style_overrides = {
-            "color": "red",
-            "text_style": "bold",
-        }
-
 
 class CommandResponseMessage(GenericMessage):
     """A message that contains a response to a command. Markup supported."""

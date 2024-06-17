@@ -22,6 +22,7 @@ class GenericHandler(ABC):
         "handle_disconnect",
         "handle_error",
         "handle_fatal_error",
+        "handle_username_update",
         "set_length_limit",
     )
 
@@ -99,6 +100,7 @@ class ServerHandler(GenericHandler):
             """Called upon the initial connection to the server."""
             pass  # TODO
 
+        # noinspection t
         @self.sock.event
         def connect_response(data: dict):
             """Emitted by the server in response to a connection attempt.
@@ -136,14 +138,14 @@ class ServerHandler(GenericHandler):
                 if "username_missing" in flags:
                     self.notify(
                         "display_system",
-                        Strings.Server.USERNAME_MISSING.format(
+                        Strings.Server.USERNAME_INITIAL_MISSING.format(
                             username=data.get("username", "UNKNOWN")
                         ),
                     )
                 elif "username_taken" in flags:
                     self.notify(
                         "display_system",
-                        Strings.Server.USERNAME_TAKEN.format(
+                        Strings.Server.USERNAME_INITIAL_TAKEN.format(
                             username=data.get("username", "UNKNOWN")
                         ),
                     )
@@ -201,6 +203,34 @@ class ServerHandler(GenericHandler):
             )
 
         @self.sock.event
+        def username_update_response(data: dict):
+            """Emitted by the server in response to a username change request.
+
+            :param data: The data sent by the server, expected:
+                | success: Whether the username change was successful
+                | flags: Any flags that were set
+                | username: The new username that was assigned to the client, if successful
+            """
+            flags = data.get("flags", [])
+            if data.get("success", False):
+                username = data.get("username", None)
+                self.sock.connection_headers["username"] = username
+                self.notify("handle_username_update", username)
+                return
+            elif len(flags) > 0:
+                if "username_missing" in flags:
+                    raise ValueError("Username missing")  # should not happen
+                elif "username_taken" in flags:
+                    return self.notify(
+                        "display_system", Strings.Server.USERNAME_CHANGE_TAKEN
+                    )
+                elif "username_invalid" in flags:
+                    return self.notify(
+                        "display_system", Strings.Server.USERNAME_CHANGE_INVALID
+                    )
+            self.notify("display_error", Strings.Server.USERNAME_CHANGE_UNKNOWN_ERROR)
+
+        @self.sock.event
         def username_update_broadcast(data: dict):
             """Emitted by the server when a user changes their username (including self).
 
@@ -210,7 +240,7 @@ class ServerHandler(GenericHandler):
             """
             self.notify(
                 "display_event",
-                Strings.Server.USERNAME_CHANGE.format(
+                Strings.Server.USERNAME_CHANGE_EVENT.format(
                     old=data.get("old", "UNKNOWN"), new=data.get("new", "UNKNOWN")
                 ),
             )
@@ -257,7 +287,6 @@ class ServerHandler(GenericHandler):
 
     def update_username(self, new_username: str):
         self.sock.emit("username_update", new_username)
-        self.sock.connection_headers["username"] = new_username
 
 
 class P2PHandler(GenericHandler):

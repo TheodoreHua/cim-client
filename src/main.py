@@ -3,6 +3,7 @@ from random import randint
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView
+from rich.markup import escape
 
 from commands import *
 from components import *
@@ -169,6 +170,7 @@ class ChatApp(App):
                 "handle_fatal_error",
                 lambda: print("Temporary fatal error handler called."),
             )
+            self.network_handler.subscribe("handle_username_update", self.set_username)
             self.network_handler.subscribe(
                 "set_length_limit",
                 lambda limit: self.call_from_thread(
@@ -187,6 +189,10 @@ class ChatApp(App):
         yield Header()
         yield self.messages_lv
         yield self.text_bar
+
+    def set_username(self, username: str):
+        """Set the username of the client"""
+        self.username = username
 
     def add_message(self, message: GenericMessage):
         """Add a message to the message log"""
@@ -208,7 +214,12 @@ class ChatApp(App):
 
         # Check if the command exists
         if command_name not in self.commands:
-            self.add_message(ErrorMessage(f"Command '{command_name}' not found."))
+            # self.add_message(ErrorMessage(f"Command '{command_name}' not found."))
+            self.add_message(
+                CommandResponseMessage(
+                    Strings.UI.COMMAND_NOT_FOUND.format(command=escape(command_name))
+                )
+            )
             return ""
 
         # Execute the command

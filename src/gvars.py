@@ -11,6 +11,7 @@ class Strings:
             "You are currently disconnected from the server."
         )
         MESSAGE_TOO_LONG_PRE_SEND = "Your message was too long to send, the limit is {max_length:,} characters. Here is your message:\n\n[code]{message}[/code]"
+        COMMAND_NOT_FOUND = "Command [italic]/{command}[/] [yellow]not found[/]. Use [underline italic]/help[/] to see a list of commands."
 
         class MessageTypes:
             TEXT = "{sender}: {message}"  # markdown supported
@@ -18,14 +19,35 @@ class Strings:
             EVENT = "EVENT | {message}"  # gray, italic
             SERVER = "SERVER | {message}"  # gray
             SYSTEM = "SYSTEM | {message}"  # markup supported, gray
-            ERROR = "ERROR | {message}"  # markup supported, red, bold
+            ERROR = "[blink bold bright_red]ERROR[/] | [red]{message}[/]"  # markup supported
 
-    # ! SERVER COMMUNICATION
     class Server:
-        USERNAME_MISSING = "You did not provide a username. You have been assigned [italic]{username}[/] as your temporary username. You can change it with [italic]/nick <new username>[/]."
-        USERNAME_TAKEN = "Your username was [underline]already taken[/]. You have been assigned [italic]{username}[/] as your temporary username. You can change it with [italic]/nick <new username>[/]."
-        CONNECTION_ESTABLISHED = "Connected to server."
-        CONNECTION_DROPPED = "Disconnected from server."
+        _TEMPORARY_USERNAME = " You have been assigned [underline italic]{username}[/] as your temporary username. You can change it with [underline italic]/nick <new username>[/]."
+        _NO_CHANGE = "Your username has not changed."
+
+        USERNAME_INITIAL_INVALID = (
+            "Your [yellow]username was invalid[/]." + _TEMPORARY_USERNAME
+        )
+        USERNAME_INITIAL_MISSING = (
+            "You [yellow]did not provide a username[/]." + _TEMPORARY_USERNAME
+        )
+        USERNAME_INITIAL_TAKEN = (
+            "Your [yellow]username was already taken[/]." + _TEMPORARY_USERNAME
+        )
+        USERNAME_CHANGE_INVALID = (
+            "The username you requested was [yellow]invalid[/]." + _NO_CHANGE
+        )
+        USERNAME_CHANGE_TAKEN = (
+            "The username you requested was [yellow]already taken[/]." + _NO_CHANGE
+        )
+        USERNAME_CHANGE_UNKNOWN_ERROR = (
+            "An [red]unknown error[/] occurred while changing your username."
+            + _NO_CHANGE
+        )
+        USERNAME_CHANGE_EVENT = "{old}'s username has been changed to {new}."
+
+        CONNECTION_ESTABLISHED = "[green]Connected[/] to server."
+        CONNECTION_DROPPED = "[red]Disconnected[/] from server."
+
         USER_CONNECTED = "{username} has connected to the server."
         USER_DISCONNECTED = "{username} has disconnected from the server."
-        USERNAME_CHANGE = "{old}'s username has been changed to {new}."
