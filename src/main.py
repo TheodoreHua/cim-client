@@ -29,8 +29,22 @@ class ChatApp(App):
 
         # Create the supported commands
         self.commands = [
-
+            Command(
+                "nick",
+                "Change your username.",
+                lambda args: (
+                    self.network_handler.update_username(args[0]),
+                    (False, ""),
+                )[1],
+                "<new_username>",
+            ),
+            Command(
+                "clear",
+                "Clear the message log.",
+                lambda _: (self.messages_lv.clear(), (False, ""))[1],
+            ),
         ]  # list for easy development
+        # noinspection PyUnusedLocal -- help_string is used in the lambda
         help_string = "Available Commands:\n" + Command.compile_help_string(
             self.commands
         )
@@ -38,7 +52,7 @@ class ChatApp(App):
             Command(
                 "help", "Display this help message.", lambda _: (False, help_string)
             )
-        )
+        )  # help command won't show up in its own output, but who needs to look at the command they're running anyway?
         self.commands = {
             command.name: command for command in self.commands
         }  # convert to dict for easy access
