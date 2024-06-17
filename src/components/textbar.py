@@ -16,7 +16,7 @@ class TextBar(Input, can_focus=True):
     app: "ChatApp"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(validate_on=["changed"], *args, **kwargs)
         self.placeholder = Strings.UI.TEXT_BAR_PLACEHOLDER
         self.max_message_length = None
 
@@ -33,10 +33,11 @@ class TextBar(Input, can_focus=True):
         if message.startswith("/"):
             message = self.app.handle_command(message)
 
+        # Check the message length before sending, as the restrict *can* be bypassed
         if self.max_message_length and len(message) > self.max_message_length:
             self.app.add_message(
                 CommandResponseMessage(
-                    Strings.UI.MESSAGE_TOO_LONG.format(
+                    Strings.UI.MESSAGE_TOO_LONG_PRE_SEND.format(
                         max_length=self.max_message_length, message=escape(message)
                     )
                 )
@@ -57,4 +58,6 @@ class TextBar(Input, can_focus=True):
         self.placeholder = Strings.UI.TEXT_BAR_DISABLED_PLACEHOLDER
 
     def set_length_limit(self, limit: int):
-        self.max_message_length = None if limit == -1 else limit
+        limit = None if limit == -1 else limit
+        self.max_message_length = limit
+        self.restrict = None if limit is None else rf"^(\/.*|.{{0,{limit}}})$"

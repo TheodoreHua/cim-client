@@ -10,7 +10,7 @@ class Strings:
         TEXT_BAR_DISABLED_PLACEHOLDER = (
             "You are currently disconnected from the server."
         )
-        MESSAGE_TOO_LONG = "Your message was too long to send, the limit is {max_length:,} characters. Here is your message:\n\n[code]{message}[/code]"
+        MESSAGE_TOO_LONG_PRE_SEND = "Your message was too long to send, the limit is {max_length:,} characters. Here is your message:\n\n[code]{message}[/code]"
 
         class MessageTypes:
             TEXT = "{sender}: {message}"  # markdown supported

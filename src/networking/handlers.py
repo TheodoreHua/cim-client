@@ -1,4 +1,5 @@
 import requests
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Callable
 
@@ -7,7 +8,7 @@ import socketio
 from gvars import *
 
 
-class GenericHandler:
+class GenericHandler(ABC):
     """Generic handler for connections - should not be used directly"""
 
     EXPECTED_TYPES = (
@@ -46,34 +47,34 @@ class GenericHandler:
         for subscriber in self._handlers[type_]:
             subscriber(*args, **kwargs)
 
+    @abstractmethod
     def connect(self, username: str = None):
         """Connect to the [P2P] server with the given username.
 
         :param username: The username to connect with, or None for server-assigned
         """
-        raise NotImplementedError
 
+    @abstractmethod
     def disconnect(self):
         """Disconnect from the [P2P] server."""
-        raise NotImplementedError
 
+    @abstractmethod
     def get_online(self):
         """Get a list of online users from the [P2P] server."""
-        raise NotImplementedError
 
+    @abstractmethod
     def send_message(self, message: str):
         """Send a message to the [P2P] server.
 
         :param message: The message to send
         """
-        raise NotImplementedError
 
+    @abstractmethod
     def update_username(self, new_username: str):
         """Request a username change to the [P2P] server.
 
         :param new_username: The new username to request
         """
-        raise NotImplementedError
 
 
 class ServerHandler(GenericHandler):
