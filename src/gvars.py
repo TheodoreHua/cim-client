@@ -18,7 +18,7 @@ class Strings:  # TODO: Reformat
 
         FATAL_ERROR_MESSAGE = "A [bold bright_red]fatal error[/] has occurred. No further messages can be sent or received. Please restart the application.\n\n[italic]* You can exit the application by pressing [bold]Ctrl+C[/] or using the Command Palette.\n* You may want to save the chat log before restarting the application, you can do so through the Command Palette.\n* You can access the command palette by pressing [bold]Ctrl + \\\\[/] or using the button in the top left corner of the window.[/]"
 
-        CHAT_LOG_SAVED = "Chat log saved to [underline italic]{filename}[/] in the current directory."
+        CHAT_LOG_SAVED = "Your chat log has been saved to [link=file://{folderpath}/]{folderpath}[/] ([link=file://{filepath}]{filename}[/])."
         CHAT_LOG_SAVE_FAILED = "Failed to save chat log."
 
         MESSAGE_TOO_LONG_PRE_SEND = "Your message was too long to send, the limit is {max_length:,} characters. Here is your message:\n\n[code]{message}[/code]"

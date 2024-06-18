@@ -1,4 +1,5 @@
 import re
+import os.path
 import shlex
 import sys
 from random import randint
@@ -348,6 +349,7 @@ class ChatApp(App):
         """Handles a non-fatal error from the network handler. Notifying is already handled by the network handler."""
         pass  # we don't need to do anything else here
 
+    # noinspection PyUnusedLocal
     def handle_fatal_error(self, type_: str):
         """Handles a fatal error from the network handler. Notifying is already handled by the network handler."""
         self.add_message(SystemMessage(Strings.UI.FATAL_ERROR_MESSAGE))
@@ -358,15 +360,18 @@ class ChatApp(App):
         chat_log = "\n".join(
             str(message) for message in self.messages_lv.query("TextMessage").results()
         )
+        folderpath = os.path.expanduser("~/Documents/CIM-Chat-Client/logs").replace("\\", "/")
         filename = f"chat_log_{int(time())}.txt"
+        filepath = os.path.join(folderpath, filename)
         try:
-            with open(filename, "w") as f:
+            os.makedirs(folderpath, exist_ok=True)
+            with open(filepath, "w") as f:
                 f.write(chat_log)
         except (Exception,):
             self.add_message(ErrorMessage(Strings.UI.CHAT_LOG_SAVE_FAILED))
             return
         self.add_message(
-            CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(filename=filename))
+            CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(folderpath=escape(folderpath), filename=escape(filename), filepath=escape(filepath)))
         )
 
 
