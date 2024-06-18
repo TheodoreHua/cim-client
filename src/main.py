@@ -466,7 +466,7 @@ if __name__ == "__main__":
         # Initial server connection: health check
         while True:
             try:
-                r_health = requests.get(f"{address}/health")
+                r_health = requests.get(f"{address}/health", timeout=3)
                 break
             except requests.exceptions.RequestException:
                 # If a port has been specified, or we've already tried the default port, don't try again
