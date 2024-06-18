@@ -31,7 +31,6 @@ class Strings:  # TODO: Reformat
         _TEMPORARY_USERNAME = " You have been assigned [underline italic]{username}[/] as your temporary username. You can change it with [underline italic]/nick <new username>[/]."
         _NO_CHANGE = " Your username has not changed."
 
-        USERNAME_REQUIREMENTS_MESSAGE = "Your username must be: {requirements}."
         USERNAME_INITIAL_INVALID = (
             "Your [yellow]username was invalid[/]." + _TEMPORARY_USERNAME
         )

@@ -213,6 +213,15 @@ class ServerHandler(GenericHandler):
             )
 
         @self.sock.event
+        def server_message(data: dict):
+            """Emitted by the server when a server message is sent.
+
+            :param data: The data sent by the server, expected:
+                | message: The message that was sent
+            """
+            self.notify("display_server", data.get("message", "UNKNOWN"))
+
+        @self.sock.event
         def username_update_response(data: dict):
             """Emitted by the server in response to a username change request.
 
@@ -235,13 +244,6 @@ class ServerHandler(GenericHandler):
                         "display_system", Strings.Server.USERNAME_CHANGE_TAKEN
                     )
                 elif "username_invalid" in flags:
-                    if "requirements" in data:
-                        self.notify(
-                            "display_server",
-                            Strings.Server.USERNAME_REQUIREMENTS_MESSAGE.format(
-                                requirements=data["requirements"]
-                            ),
-                        )
                     return self.notify(
                         "display_system", Strings.Server.USERNAME_CHANGE_INVALID
                     )
@@ -307,4 +309,5 @@ class ServerHandler(GenericHandler):
 
 class P2PHandler(GenericHandler):
     """Handler for P2P connections"""
+
     # TODO
