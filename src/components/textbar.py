@@ -31,7 +31,7 @@ class TextBar(Input, can_focus=True):
         """
         message = event.value.strip()
         if message.startswith("/"):
-            message = self.app.handle_command(message)
+            message = self.app.handle_command(message).strip()
 
         # Check the message length before sending, as the restrict *can* be bypassed
         if self.max_message_length and len(message) > self.max_message_length:
