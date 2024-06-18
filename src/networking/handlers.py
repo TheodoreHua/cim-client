@@ -235,6 +235,10 @@ class ServerHandler(GenericHandler):
                         "display_system", Strings.Server.USERNAME_CHANGE_TAKEN
                     )
                 elif "username_invalid" in flags:
+                    if "requirements" in data:
+                        self.notify("display_server", Strings.Server.USERNAME_REQUIREMENTS_MESSAGE.format(
+                            requirements=data["requirements"]
+                        ))
                     return self.notify(
                         "display_system", Strings.Server.USERNAME_CHANGE_INVALID
                     )
@@ -266,9 +270,8 @@ class ServerHandler(GenericHandler):
             """
             if data.get("fatal", False):
                 if "message" in data and data["message"] is not None:
-                    self.notify("display_error", data["message"])
+                    self.notify("display_error", f"FATAL: {data['message']}")
                 self.notify("handle_fatal_error", data.get("type", "UNKNOWN"))
-                self.sock.disconnect()
             else:
                 if "message" in data and data["message"] is not None:
                     self.notify("display_error", data["message"])
