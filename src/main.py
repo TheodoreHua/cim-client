@@ -32,8 +32,17 @@ class ChatApp(App):
         # Message Bar
         self.text_bar = TextBar()
 
-        # Create the supported commands
-        self.commands = [
+        # Initialize the supported commands
+        self.commands = {}
+        self.init_commands()
+
+        # Register [network handler] [event handlers], if we have a network handler
+        if self.network_handler is not None:
+            self.init_network_handler_subscriptions()
+
+    def init_commands(self):
+        """Initialize all supported commands"""
+        commands = [
             # Management Commands
             Command(
                 "quit",
@@ -112,76 +121,76 @@ class ChatApp(App):
         ]  # list for easy development
         # noinspection PyUnusedLocal -- help_string is used in the lambda
         help_string = "Available Commands:\n" + Command.compile_help_string(
-            sorted(self.commands, key=lambda x: x.name)
+            sorted(commands, key=lambda x: x.name)
         )
-        self.commands.append(
+        commands.append(
             Command(
                 "help", "Display this help message.", lambda _: (False, help_string)
             )
         )  # help command won't show up in its own output, but who needs to look at the command they're running anyway?
         self.commands = {
-            command.name: command for command in self.commands
+            command.name: command for command in commands
         }  # convert to dict for easy access
 
-        # Register [network handler] [event handlers], if we have a network handler
-        if self.network_handler is not None:
-            self.network_handler.subscribe(
-                "display_message",
-                lambda sender, message: self.call_from_thread(
-                    lambda: self.add_message(TextMessage(sender, message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "display_motd",
-                lambda message: self.call_from_thread(
-                    lambda: self.add_message(MOTDMessage(message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "display_event",
-                lambda message: self.call_from_thread(
-                    lambda: self.add_message(EventMessage(message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "display_server",
-                lambda message: self.call_from_thread(
-                    lambda: self.add_message(ServerMessage(message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "display_system",
-                lambda message: self.call_from_thread(
-                    lambda: self.add_message(SystemMessage(message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "display_error",
-                lambda message: self.call_from_thread(
-                    lambda: self.add_message(ErrorMessage(message))
-                ),
-            )
-            self.network_handler.subscribe(
-                "handle_reconnect", lambda: self.call_from_thread(self.text_bar.enable)
-            )
-            self.network_handler.subscribe(
-                "handle_disconnect",
-                lambda: self.call_from_thread(self.text_bar.disable),
-            )
-            self.network_handler.subscribe(
-                "handle_error", lambda: print("Temporary error handler called.")
-            )
-            self.network_handler.subscribe(
-                "handle_fatal_error",
-                lambda: print("Temporary fatal error handler called."),
-            )
-            self.network_handler.subscribe("handle_username_update", self.set_username)
-            self.network_handler.subscribe(
-                "set_length_limit",
-                lambda limit: self.call_from_thread(
-                    lambda: self.text_bar.set_length_limit(limit)
-                ),
-            )
+    def init_network_handler_subscriptions(self):
+        """Add all necessary network handler subscriptions"""
+        self.network_handler.subscribe(
+            "display_message",
+            lambda sender, message: self.call_from_thread(
+                lambda: self.add_message(TextMessage(sender, message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "display_motd",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(MOTDMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "display_event",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(EventMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "display_server",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(ServerMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "display_system",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(SystemMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "display_error",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(ErrorMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
+            "handle_reconnect", lambda: self.call_from_thread(self.text_bar.enable)
+        )
+        self.network_handler.subscribe(
+            "handle_disconnect",
+            lambda: self.call_from_thread(self.text_bar.disable),
+        )
+        self.network_handler.subscribe(
+            "handle_error", lambda: print("Temporary error handler called.")
+        )
+        self.network_handler.subscribe(
+            "handle_fatal_error",
+            lambda: print("Temporary fatal error handler called."),
+        )
+        self.network_handler.subscribe("handle_username_update", self.set_username)
+        self.network_handler.subscribe(
+            "set_length_limit",
+            lambda limit: self.call_from_thread(
+                lambda: self.text_bar.set_length_limit(limit)
+            ),
+        )
 
     def on_mount(self):
         """Called when the application is mounted (ready)"""
