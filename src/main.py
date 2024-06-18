@@ -17,7 +17,11 @@ from networking import *
 
 class PaletteCommands(Provider):
     @property
-    def _palette_commands(self) -> tuple[tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...]:
+    def _palette_commands(
+        self,
+    ) -> tuple[
+        tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...
+    ]:
         return (
             (
                 "Toggle light/dark mode",
@@ -66,6 +70,7 @@ class PaletteCommands(Provider):
 
 class ChatApp(App):
     """The main application for the CIM client."""
+
     COMMANDS = {PaletteCommands}
 
     def __init__(self, network_handler: GenericHandler = None, username=None) -> None:
@@ -255,10 +260,11 @@ class ChatApp(App):
 
     def on_mount(self):
         """Called when the application is mounted (ready)"""
+        # Warn of legacy Windows console
         if detect_legacy_windows():
             self.add_message(WarnMessage(Strings.UI.LEGACY_WINDOWS_WARNING))
 
-        # called here to ensure the app is ready for messages
+        # Attempt network connection
         if not self.network_handler.connect(self.username):
             # Connection failed
             self.add_message(ErrorMessage(Strings.Server.CONNECTION_FAILED, fatal=True))
@@ -337,7 +343,9 @@ class ChatApp(App):
         except (Exception,):
             self.add_message(ErrorMessage(Strings.UI.CHAT_LOG_SAVE_FAILED))
             return
-        self.add_message(CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(filename=filename)))
+        self.add_message(
+            CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(filename=filename))
+        )
 
 
 if __name__ == "__main__":
