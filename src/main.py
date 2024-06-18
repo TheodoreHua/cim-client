@@ -185,11 +185,11 @@ class ChatApp(App):
             lambda: self.call_from_thread(self.text_bar.disable),
         )
         self.network_handler.subscribe(
-            "handle_error", lambda: print("Temporary error handler called.")
+            "handle_error", lambda type_: self.call_from_thread(lambda: self.handle_error(type_))
         )
         self.network_handler.subscribe(
             "handle_fatal_error",
-            lambda: print("Temporary fatal error handler called."),
+            lambda type_: self.call_from_thread(lambda: self.handle_fatal_error(type_)),
         )
         self.network_handler.subscribe("handle_username_update", self.set_username)
         self.network_handler.subscribe(
@@ -261,6 +261,14 @@ class ChatApp(App):
             # otherwise, display it locally
             self.add_message(CommandResponseMessage(message))
         return ""  # no message to send
+
+    def handle_error(self, type_: str):
+        """Handles a non-fatal error from the network handler. Notifying is already handled by the network handler."""
+        pass  # we don't need to do anything else here
+
+    def handle_fatal_error(self, type_: str):
+        """Handles a fatal error from the network handler. Notifying is already handled by the network handler."""
+        pass  # TODO
 
 
 if __name__ == "__main__":
