@@ -317,7 +317,13 @@ class ServerHandler(GenericHandler):
         self.sock.emit("username_update", new_username)
 
 
-class P2PHandler(GenericHandler):
-    """Handler for P2P connections"""
+class P2PHostHandler(GenericHandler):
+    """Handler for being the host in a P2P connection"""
+
+    # TODO
+
+
+class P2PClientHandler(GenericHandler):
+    """Handler for being the client in a P2P connection"""
 
     # TODO

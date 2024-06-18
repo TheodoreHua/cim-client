@@ -1,7 +1,9 @@
+import re
 import shlex
+import sys
 from random import randint
 from time import time
-from typing import Union, Callable, Awaitable, Any
+from typing import Tuple, Union, Callable, Any, Awaitable
 
 from rich.console import detect_legacy_windows
 from rich.markup import escape
@@ -19,23 +21,25 @@ class PaletteCommands(Provider):
     @property
     def _palette_commands(
         self,
-    ) -> tuple[
-        tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...
+    ) -> Tuple[
+        Tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...
     ]:
+        app = self.app
+        assert isinstance(app, ChatApp)
         return (
             (
                 "Toggle light/dark mode",
-                self.app.action_toggle_dark,
+                app.action_toggle_dark,
                 "Toggles the application between light mode [why?] and dark mode",
             ),
             (
                 "Save chat log",
-                self.app.action_save_chat_log,
+                app.action_save_chat_log,
                 "Saves the current chat log to a file in the current directory",
             ),
             (
                 "Quit the application",
-                self.app.action_quit,
+                app.action_quit,
                 "Quits the application",
             ),
         )
@@ -122,7 +126,7 @@ class ChatApp(App):
                 "Get the GitHub repository links for the project.",
                 lambda _: (
                     False,
-                    f"Here are the GitHub links:\n* [link={GITHUB_CLIENT}]Client[/] ({GITHUB_CLIENT.lstrip('https://github.com/')})\n* [link={GITHUB_SERVER}]Server[/] ({GITHUB_SERVER.lstrip('https://github.com')})",
+                    f"Here are the GitHub links:\n* [link={GITHUB_CLIENT}]Client[/] ({re.sub(r'^https://github.com', '', GITHUB_CLIENT)})\n* [link={GITHUB_SERVER}]Server[/] ({re.sub(r'^https://github.com', '', GITHUB_SERVER)})",
                 ),
             ),
             # User Commands
@@ -130,7 +134,11 @@ class ChatApp(App):
                 "nick",
                 "Change your username.",
                 lambda args: (
-                    self.network_handler.update_username(args[0]) if len(args) == 1 else None,
+                    (
+                        self.network_handler.update_username(args[0])
+                        if len(args) == 1
+                        else None
+                    ),
                     (False, "" if len(args) == 1 else "Please provide a username"),
                 )[1],
                 "<new username>",
@@ -362,43 +370,154 @@ class ChatApp(App):
 
 
 if __name__ == "__main__":
-    # import argparse
-    # import requests
+    import argparse
+    import requests
+
     #
     # # TODO: Streamline startup process, check address validity, etc.
-    # parser = argparse.ArgumentParser(description="CIM (Command [Line] Instant Messenger) Client - a simple chat client for the command line, capable of P2P & server-based messaging.")
-    # parser.add_argument('address', type=str, nargs='?', help="The address of the server to connect to. Use --server to start a server instead.", metavar='ADDRESS')
-    # parser.add_argument('-s', '--server', '--host', action='store_true', help="Start a server instead of connecting to one.")
-    # parser.add_argument('-u', '--username', type=str, help="The username to use when connecting to a server.")
-    #
-    # parse = parser.parse_args()
-    # address = parse.address
-    #
-    # networking_handler = None
-    # if address == "debug":
-    #     pass  # no networking
-    # elif parse.server:
-    #     # Start server
-    #     exit(1)
-    # else:
-    #     # noinspection HttpUrlsUsage
-    #     try:
-    #         r = requests.get(f"{parse.address}/health")
-    #     except requests.exceptions.RequestException:
-    #         print("Server is not running.")
-    #         exit(1)
-    #     if not r.ok or r.text != "ok":
-    #         print("Server is not running.")
-    #         exit(1)
-    #     # noinspection HttpUrlsUsage
-    #     type_ = requests.get(f"{parse.address}/type").text
-    #     if type_ == "server":
-    #         networking_handler = ServerHandler(parse.address)
-    #     elif type_ == "p2p":
-    #         pass
-    #     else:
-    #         print("Invalid server type.")
-    #         exit(1)
+    parser = argparse.ArgumentParser(
+        description="CIM (Command [Line] Instant Messenger) Client - a simple chat client in the command line, capable of P2P & server-based messaging."
+    )
+    parser.add_argument(
+        "address",
+        type=str,
+        help="The address of the server to connect to.",
+        metavar="ADDRESS",
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        help="The port of the server to connect to.",
+        default=None,
+    )
+    parser.add_argument(
+        "-p2p",
+        "--peer-to-peer",
+        action="store_true",
+        help="Use peer-to-peer messaging instead of the default server-based messaging. (COMING SOON)",
+    )
+    parser.add_argument(
+        "-u",
+        "--username",
+        type=str,
+        help="The username to use when connecting to a server.",
+    )
+    parser.add_argument(
+        "--offline-debug", action="store_true", help=argparse.SUPPRESS
+    )  # currently unused
+    parser.add_argument(
+        "--debug", action="store_true", help=argparse.SUPPRESS
+    )  # currently unused
 
-    app = ChatApp(ServerHandler("http://127.0.0.1:5000"))
+    parse = parser.parse_args(
+        args=None if sys.argv[1:] else ["--help"]
+    )  # show help if no arguments are provided
+    address = parse.address
+    port = parse.port
+
+    networking_handler = None
+
+    # noinspection HttpUrlsUsage
+    if not (
+        address.startswith("http://") or address.startswith("https://")
+    ):  # add http:// if not provided
+        # noinspection HttpUrlsUsage
+        address = "http://" + address
+    if address.endswith("/"):  # remove trailing slash
+        address = address.rstrip("/")
+    if re.search(
+        r":\d{4,5}$", address
+    ):  # if port has been erroneously added to the address
+        address_port = int(address.split(":")[-1])
+
+        # conflicting port numbers
+        if port is not None and port != address_port:
+            print(
+                "Conflicting port numbers have been provided (address & flag). Please provide only one port number."
+            )
+            exit(1)
+
+        # set port to the one provided in the address, and remove it from the address (added later)
+        address = re.sub(r":\d{4,5}$", "", address)
+        port = address_port
+
+    # Verify URL is valid
+    if not re.fullmatch(
+        r"^https?://(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}$", address
+    ):
+        print(
+            "The address provided is not a valid address. Please provide either a domain or an IP address, without a path."
+        )
+        exit(1)
+
+    # If we have a port, add it to the address
+    if port is not None:
+        address += f":{port}"
+
+    if parse.peer_to_peer:
+        print(
+            "Peer-to-peer messaging is not yet supported. If you require this functionality, you may run cim-server in addition to cim-client and connect to it in server mode."
+        )
+        exit(1)
+    else:
+        print("Attempting to connect to server...")
+
+        # Initial server connection: health check
+        while True:
+            try:
+                r_health = requests.get(f"{address}/health")
+                break
+            except requests.exceptions.RequestException:
+                # If a port has been specified, or we've already tried the default port, don't try again
+                if port is not None or address.endswith(":61824"):
+                    print(
+                        "The server is not running, please verify your connection and/or try again later."
+                    )
+                    exit(1)
+                else:  # Try the default port
+                    print(
+                        "Connection failed on HTTP[S] ports, trying application default port (61824)..."
+                    )
+                    address += ":61824"
+        if not r_health.ok or r_health.text != "ok":
+            print(
+                "The server is either not running or not compatible. Please verify your connection and/or try again later."
+            )
+            exit(1)
+
+        # Retrieve server type
+        try:
+            r_type = requests.get(f"{address}/type")
+        except requests.exceptions.RequestException:
+            print(
+                "The server is not running, please verify your connection and/or try again later."
+            )
+            exit(1)
+        if not r_type.ok:
+            # We've already checked health, so this is likely not a connection issue
+            print(
+                "Failed to retrieve the server type, the server is likely incompatible with this client."
+            )
+            exit(1)
+
+        # Check server type
+        type_ = r_type.text
+        if type_ != "server":
+            if type_ == "p2p":
+                print(
+                    "The server you are trying to connect to is a peer-to-peer server. Please use the -p2p flag to connect to it."
+                )
+                # TODO: When P2P is implemented, invisibly switch to P2P mode without user intervention
+                exit(1)
+            else:
+                print(
+                    "The server you are trying to connect to is not compatible with this client."
+                )
+                exit(1)
+
+        # Create the networking handler
+        networking_handler = ServerHandler(address)
+
+    app = ChatApp(networking_handler, parse.username)
     app.run()
