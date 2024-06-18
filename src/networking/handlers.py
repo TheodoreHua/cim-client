@@ -4,6 +4,7 @@ from typing import Callable
 
 import requests
 import socketio
+import socketio.exceptions
 
 from gvars import *
 
@@ -275,18 +276,27 @@ class ServerHandler(GenericHandler):
             """
             if data.get("fatal", False):
                 if "message" in data and data["message"] is not None:
-                    self.notify("display_error", f"FATAL: {data['message']}")
+                    self.notify("display_error", data["message"], fatal=True)
                 self.notify("handle_fatal_error", data.get("type", "UNKNOWN"))
             else:
                 if "message" in data and data["message"] is not None:
                     self.notify("display_error", data["message"])
                 self.notify("handle_error", data.get("type", "UNKNOWN"))
 
-    def connect(self, username: str = None):
-        self.sock.connect(
-            self.server_address,
-            headers={"client-version": VERSION, "username": username},
-        )
+    def connect(self, username: str = None) -> bool:
+        """Connect to the server with the given username.
+
+        :param username: The username to connect with, or None for server-assigned
+        :return: Whether the connection was successful, if unsuccessful, the connection was not established.
+        """
+        try:
+            self.sock.connect(
+                self.server_address,
+                headers={"client-version": VERSION, "username": username},
+            )
+            return True
+        except socketio.exceptions.ConnectionError:
+            return False
 
     def disconnect(self):
         self.sock.disconnect()

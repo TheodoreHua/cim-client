@@ -145,9 +145,14 @@ class WarnMessage(GenericMessage):
 class ErrorMessage(GenericMessage):
     """A message that contains an error message. Markup supported."""
 
-    def __init__(self, message: str) -> None:
+    def __init__(self, message: str, fatal: bool = False) -> None:
         super().__init__(
-            Strings.UI.MessageTypes.ERROR.format(message=message), allow_markup=True
+            (
+                Strings.UI.MessageTypes.FATAL_ERROR
+                if fatal
+                else Strings.UI.MessageTypes.ERROR
+            ).format(message=message),
+            allow_markup=True,
         )
 
 

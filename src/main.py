@@ -1,9 +1,12 @@
 import shlex
 from random import randint
+from time import time
+from typing import Union, Callable, Awaitable, Any
 
 from rich.console import detect_legacy_windows
 from rich.markup import escape
 from textual.app import App, ComposeResult
+from textual.command import DiscoveryHit, Hit, Hits, Provider
 from textual.widgets import Header, ListView
 
 from commands import *
@@ -12,8 +15,58 @@ from gvars import Strings
 from networking import *
 
 
+class PaletteCommands(Provider):
+    @property
+    def _palette_commands(self) -> tuple[tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...]:
+        return (
+            (
+                "Toggle light/dark mode",
+                self.app.action_toggle_dark,
+                "Toggles the application between light mode [why?] and dark mode",
+            ),
+            (
+                "Save chat log",
+                self.app.action_save_chat_log,
+                "Saves the current chat log to a file in the current directory",
+            ),
+            (
+                "Quit the application",
+                self.app.action_quit,
+                "Quits the application",
+            ),
+        )
+
+    async def discover(self) -> Hits:
+        """Handle a request for the discovery commands for this provider.
+
+        Yields:
+            Commands that can be discovered.
+        """
+        for name, runnable, help_text in self._palette_commands:
+            yield DiscoveryHit(
+                name,
+                runnable,
+                help=help_text,
+            )
+
+    async def search(self, query: str) -> Hits:
+        app = self.app
+        assert isinstance(app, ChatApp)
+
+        matcher = self.matcher(query)
+        for name, runnable, help_text in self._palette_commands:
+            if (match := matcher.match(name)) > 0:
+                yield Hit(
+                    match,
+                    matcher.highlight(name),
+                    runnable,
+                    help=help_text,
+                )
+
+
 class ChatApp(App):
     """The main application for the CIM client."""
+    COMMANDS = {PaletteCommands}
 
     def __init__(self, network_handler: GenericHandler = None, username=None) -> None:
         """Create a new ChatApp instance
@@ -173,8 +226,8 @@ class ChatApp(App):
         )
         self.network_handler.subscribe(
             "display_error",
-            lambda message: self.call_from_thread(
-                lambda: self.add_message(ErrorMessage(message))
+            lambda message, fatal=False: self.call_from_thread(
+                lambda: self.add_message(ErrorMessage(message, fatal))
             ),
         )
         self.network_handler.subscribe(
@@ -202,15 +255,15 @@ class ChatApp(App):
 
     def on_mount(self):
         """Called when the application is mounted (ready)"""
-        self.network_handler.connect(
-            self.username
-        )  # called here to ensure the app is ready for messages
         if detect_legacy_windows():
-            self.add_message(
-                WarnMessage(
-                    "It appears you are running on a legacy version of the Windows console. This is not supported, and may cause visual issues with the application. It is recommended to use a modern terminal emulator such as Windows Terminal."
-                )
-            )
+            self.add_message(WarnMessage(Strings.UI.LEGACY_WINDOWS_WARNING))
+
+        # called here to ensure the app is ready for messages
+        if not self.network_handler.connect(self.username):
+            # Connection failed
+            self.add_message(ErrorMessage(Strings.Server.CONNECTION_FAILED, fatal=True))
+            self.handle_fatal_error("connection_failed")
+            return
 
     def compose(self) -> ComposeResult:
         """Compose the application layout"""
@@ -269,7 +322,22 @@ class ChatApp(App):
 
     def handle_fatal_error(self, type_: str):
         """Handles a fatal error from the network handler. Notifying is already handled by the network handler."""
-        pass  # TODO
+        self.add_message(SystemMessage(Strings.UI.FATAL_ERROR_MESSAGE))
+        self.text_bar.disable()
+
+    def action_save_chat_log(self):
+        """Save the chat log to a file"""
+        chat_log = "\n".join(
+            str(message) for message in self.messages_lv.query("TextMessage").results()
+        )
+        filename = f"chat_log_{int(time())}.txt"
+        try:
+            with open(filename, "w") as f:
+                f.write(chat_log)
+        except (Exception,):
+            self.add_message(ErrorMessage(Strings.UI.CHAT_LOG_SAVE_FAILED))
+            return
+        self.add_message(CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(filename=filename)))
 
 
 if __name__ == "__main__":
