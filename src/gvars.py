@@ -1,4 +1,4 @@
-VERSION = "0.0.1"  # The version of the client
+VERSION = "0.1.0"  # The version of the client
 GITHUB_CLIENT = "https://github.com/TheodoreHua/cim-client"
 GITHUB_SERVER = "https://github.com/TheodoreHua/cim-server"
 
