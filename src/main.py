@@ -1,6 +1,7 @@
 import shlex
 from random import randint
 
+from rich.console import detect_legacy_windows
 from rich.markup import escape
 from textual.app import App, ComposeResult
 from textual.widgets import Header, ListView
@@ -165,6 +166,12 @@ class ChatApp(App):
             ),
         )
         self.network_handler.subscribe(
+            "display_warning",
+            lambda message: self.call_from_thread(
+                lambda: self.add_message(WarnMessage(message))
+            ),
+        )
+        self.network_handler.subscribe(
             "display_error",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(ErrorMessage(message))
@@ -197,6 +204,12 @@ class ChatApp(App):
         self.network_handler.connect(
             self.username
         )  # called here to ensure the app is ready for messages
+        if detect_legacy_windows():
+            self.add_message(
+                WarnMessage(
+                    "It appears you are running on a legacy version of the Windows console. This is not supported, and may cause visual issues with the application. It is recommended to use a modern terminal emulator such as Windows Terminal."
+                )
+            )
 
     def compose(self) -> ComposeResult:
         """Compose the application layout"""

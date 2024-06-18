@@ -5,6 +5,7 @@ from .messages import (
     EventMessage,
     ServerMessage,
     SystemMessage,
+    WarnMessage,
     ErrorMessage,
     CommandResponseMessage,
 )

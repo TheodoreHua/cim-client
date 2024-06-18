@@ -17,6 +17,7 @@ class GenericHandler(ABC):
         "display_event",
         "display_server",
         "display_system",
+        "display_warning",
         "display_error",
         "handle_raw_connect",
         "handle_reconnect",

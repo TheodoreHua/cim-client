@@ -130,6 +130,15 @@ class SystemMessage(GenericMessage):
         self.content_style_overrides = {"color": "gray"}
 
 
+class WarnMessage(GenericMessage):
+    """A message that contains a warning message. Markup supported."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            Strings.UI.MessageTypes.WARN.format(message=message), allow_markup=True
+        )
+
+
 class ErrorMessage(GenericMessage):
     """A message that contains an error message. Markup supported."""
 

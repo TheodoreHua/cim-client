@@ -6,11 +6,16 @@ class Strings:
 
     class UI:
         TITLE = f"CIM Chat (v{VERSION})"
+
+        LEGACY_WINDOWS_WARNING = "It appears you are running on a legacy version of the Windows console. This is not supported, and may cause visual issues with the application. It is recommended to use a modern terminal emulator such as [link=https://github.com/microsoft/terminal#installing-and-running-windows-terminal]Windows Terminal[/link]."
+
         TEXT_BAR_PLACEHOLDER = "Type your message here..."
         TEXT_BAR_DISABLED_PLACEHOLDER = (
             "You are currently disconnected from the server."
         )
+
         MESSAGE_TOO_LONG_PRE_SEND = "Your message was too long to send, the limit is {max_length:,} characters. Here is your message:\n\n[code]{message}[/code]"
+
         COMMAND_NOT_FOUND = "Command [italic]/{command}[/] [yellow]not found[/]. Use [underline italic]/help[/] to see a list of commands."
 
         class MessageTypes:
@@ -19,6 +24,7 @@ class Strings:
             EVENT = "EVENT | {message}"  # gray, italic
             SERVER = "SERVER | {message}"  # gray
             SYSTEM = "SYSTEM | {message}"  # markup supported, gray
+            WARN = "[blink bold yellow]WARN[/] | [bright_yellow]{message}[/]"  # markup supported
             ERROR = "[blink bold bright_red]ERROR[/] | [red]{message}[/]"  # markup supported
 
     class Server:
