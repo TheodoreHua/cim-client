@@ -31,12 +31,13 @@ class Command:
         """
         return self.func(args)
 
-    def get_help(self) -> str:
+    def get_help(self, markup=False) -> str:
         """Get the help message for this command.
 
+        :param markup: Whether to use markup in the help message
         :return: A string containing the help message
         """
-        return f"/{self.name}{f' {self.argument_doc}' if self.argument_doc else ''}: {self.description}"
+        return f"{'[bold]' if markup else ''}/{self.name}{'[/]' if markup else ''}{f' {self.argument_doc}' if self.argument_doc else ''}: {self.description}"
 
     def __repr__(self) -> str:
         return f"<Command '{self.name}'>"
@@ -45,10 +46,11 @@ class Command:
         return self.name
 
     @staticmethod
-    def compile_help_string(commands: list) -> str:
+    def compile_help_string(commands: list, markup=False) -> str:
         """Get the help string for a list of commands.
 
         :param commands: The list of commands
+        :param markup: Whether to use markup in the help messages
         :return: A string containing the help message for all the commands
         """
-        return "\n".join([command.get_help() for command in commands])
+        return "\n".join([command.get_help(markup) for command in commands])

@@ -11,7 +11,7 @@ from textual.widgets import Header, ListView
 
 from commands import *
 from components import *
-from gvars import Strings
+from gvars import Strings, GITHUB_CLIENT, GITHUB_SERVER
 from networking import *
 
 
@@ -116,6 +116,15 @@ class ChatApp(App):
                     "Online Users:\n" + "\n".join(self.network_handler.get_online()),
                 ),
             ),
+            # Info Commands
+            Command(
+                "github",
+                "Get the GitHub repository links for the project.",
+                lambda _: (
+                    False,
+                    f"Here are the GitHub links:\n* [link={GITHUB_CLIENT}]Client[/] ({GITHUB_CLIENT.lstrip('https://github.com/')})\n* [link={GITHUB_SERVER}]Server[/] ({GITHUB_SERVER.lstrip('https://github.com')})",
+                ),
+            ),
             # User Commands
             Command(
                 "nick",
@@ -179,8 +188,11 @@ class ChatApp(App):
             ),
         ]  # list for easy development
         # noinspection PyUnusedLocal -- help_string is used in the lambda
-        help_string = "Available Commands:\n" + Command.compile_help_string(
-            sorted(commands, key=lambda x: x.name)
+        help_string = (
+            "[bold underline]Available Commands[/]:\n"
+            + Command.compile_help_string(
+                sorted(commands, key=lambda x: x.name), markup=True
+            )
         )
         commands.append(
             Command(
