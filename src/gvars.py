@@ -22,8 +22,8 @@ class Strings:
             TEXT = "{sender}: {message}"  # markdown supported
             MOTD = "[bold]MOTD[/]: [italic]{message}[/]"  # markup supported, center-aligned, overlined, underlined
             EVENT = "EVENT | {message}"  # gray, italic
-            SERVER = "SERVER | {message}"  # gray
-            SYSTEM = "SYSTEM | {message}"  # markup supported, gray
+            SERVER = "[bold cyan]SERVER[/] | {message}"  # markup supported, gray
+            SYSTEM = "[bold blue]SYSTEM[/] | {message}"  # markup supported, gray
             WARN = "[blink bold yellow]WARN[/] | [bright_yellow]{message}[/]"  # markup supported
             ERROR = "[blink bold bright_red]ERROR[/] | [red]{message}[/]"  # markup supported
 

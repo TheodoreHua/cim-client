@@ -110,11 +110,14 @@ class EventMessage(GenericMessage):
         }
 
 
-class ServerMessage(MarkdownMessage):
-    """A message that contains a server message. Markdown supported."""
+class ServerMessage(GenericMessage):
+    """A message that contains a server message."""
 
     def __init__(self, message: str) -> None:
-        super().__init__(Strings.UI.MessageTypes.SERVER.format(message=message))
+        super().__init__(
+            Strings.UI.MessageTypes.SERVER.format(message=escape(message)),
+            allow_markup=True,
+        )
 
         self.content_style_overrides = {"color": "gray"}
 

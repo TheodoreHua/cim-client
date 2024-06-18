@@ -236,9 +236,12 @@ class ServerHandler(GenericHandler):
                     )
                 elif "username_invalid" in flags:
                     if "requirements" in data:
-                        self.notify("display_server", Strings.Server.USERNAME_REQUIREMENTS_MESSAGE.format(
-                            requirements=data["requirements"]
-                        ))
+                        self.notify(
+                            "display_server",
+                            Strings.Server.USERNAME_REQUIREMENTS_MESSAGE.format(
+                                requirements=data["requirements"]
+                            ),
+                        )
                     return self.notify(
                         "display_system", Strings.Server.USERNAME_CHANGE_INVALID
                     )

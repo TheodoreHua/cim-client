@@ -185,7 +185,8 @@ class ChatApp(App):
             lambda: self.call_from_thread(self.text_bar.disable),
         )
         self.network_handler.subscribe(
-            "handle_error", lambda type_: self.call_from_thread(lambda: self.handle_error(type_))
+            "handle_error",
+            lambda type_: self.call_from_thread(lambda: self.handle_error(type_)),
         )
         self.network_handler.subscribe(
             "handle_fatal_error",
