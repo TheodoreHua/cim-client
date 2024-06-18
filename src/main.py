@@ -130,8 +130,8 @@ class ChatApp(App):
                 "nick",
                 "Change your username.",
                 lambda args: (
-                    self.network_handler.update_username(args[0]),
-                    (False, ""),
+                    self.network_handler.update_username(args[0]) if len(args) == 1 else None,
+                    (False, "" if len(args) == 1 else "Please provide a username"),
                 )[1],
                 "<new username>",
             ),
@@ -185,6 +185,7 @@ class ChatApp(App):
                     True,
                     rf"{' '.join(args) + (' ' if len(args) > 0 else '')}┬─┬ ノ( ゜-゜ノ)",
                 ),
+                "<message>",
             ),
         ]  # list for easy development
         # noinspection PyUnusedLocal -- help_string is used in the lambda
