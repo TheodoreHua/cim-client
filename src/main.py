@@ -173,7 +173,7 @@ class ChatApp(App):
                 "Adds a shrug to the end of your message",
                 lambda args: (
                     True,
-                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}¯\\\_(ツ)\_/¯",
+                    rf"{' '.join(args)} ¯\\\_(ツ)\_/¯",
                 ),
                 "<message>",
             ),
@@ -182,7 +182,7 @@ class ChatApp(App):
                 "Adds a flip to the end of your message",
                 lambda args: (
                     True,
-                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}(╯°□°）╯︵ ┻━┻",
+                    rf"{' '.join(args)} (╯°□°）╯︵ ┻━┻",
                 ),
                 "<message>",
             ),
@@ -191,7 +191,7 @@ class ChatApp(App):
                 "Adds an unflip to the end of your message",
                 lambda args: (
                     True,
-                    rf"{' '.join(args) + (' ' if len(args) > 0 else '')}┬─┬ ノ( ゜-゜ノ)",
+                    rf"{' '.join(args)} ┬─┬ ノ( ゜-゜ノ)",
                 ),
                 "<message>",
             ),
