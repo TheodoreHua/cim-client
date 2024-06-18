@@ -18,6 +18,7 @@ class GenericHandler(ABC):
         "display_server",
         "display_system",
         "display_error",
+        "handle_raw_connect",
         "handle_reconnect",
         "handle_disconnect",
         "handle_error",
@@ -98,7 +99,8 @@ class ServerHandler(GenericHandler):
         @self.sock.event
         def connect():
             """Called upon the initial connection to the server."""
-            pass  # TODO
+            # All connection logic is handled in the connect_response event, we just notify in case wanted here
+            self.notify("handle_raw_connect")
 
         # noinspection t
         @self.sock.event

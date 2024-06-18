@@ -37,8 +37,6 @@ class GenericMessage(Container):
     def compose(
         self,
     ) -> ComposeResult:
-        # TODO: Consider horizontal elements? (e.g. sender/type/etc on left, message on right -- would prevent fake sender in message)
-        # TODO: Consider alternating background for readability?
         yield self._apply_styles(
             Static(renderable=self.source_message, markup=self.allow_markup)
         )
