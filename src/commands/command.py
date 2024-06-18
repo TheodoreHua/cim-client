@@ -1,5 +1,7 @@
 from typing import Callable, Tuple
 
+from rich.markup import escape
+
 
 class Command:
     def __init__(
@@ -34,10 +36,10 @@ class Command:
     def get_help(self, markup=False) -> str:
         """Get the help message for this command.
 
-        :param markup: Whether to use markup in the help message
+        :param markup: Whether markup is enabled
         :return: A string containing the help message
         """
-        return f"{'[bold]' if markup else ''}/{self.name}{'[/]' if markup else ''}{f' {self.argument_doc}' if self.argument_doc else ''}: {self.description}"
+        return f"{'[bold]' if markup else ''}/{self.name}{'[/]' if markup else ''}{f' {escape(self.argument_doc) if markup else self.argument_doc}' if self.argument_doc else ''}: {self.description}"
 
     def __repr__(self) -> str:
         return f"<Command '{self.name}'>"

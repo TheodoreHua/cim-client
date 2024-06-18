@@ -1,5 +1,5 @@
-import re
 import os.path
+import re
 import shlex
 import sys
 from random import randint
@@ -14,7 +14,7 @@ from textual.widgets import Header, ListView
 
 from commands import *
 from components import *
-from gvars import Strings, GITHUB_CLIENT, GITHUB_SERVER
+from gvars import Strings, GITHUB_CLIENT, GITHUB_SERVER, CONNECT_TIMEOUT
 from networking import *
 
 
@@ -36,7 +36,7 @@ class PaletteCommands(Provider):
             (
                 "Save chat log",
                 app.action_save_chat_log,
-                "Saves the current chat log to a file in the current directory",
+                "Saves the current chat log",
             ),
             (
                 "Quit the application",
@@ -115,6 +115,21 @@ class ChatApp(App):
                 lambda _: (self.exit(), (False, ""))[1],
             ),
             Command(
+                "toggledark",
+                "Toggle light/dark mode.",
+                lambda _: (self.action_toggle_dark(), (False, ""))[1],
+            ),
+            Command(
+                "save",
+                "Save the current message log.",
+                lambda _: (self.action_save_chat_log(), (False, ""))[1],
+            ),
+            Command(
+                "clear",
+                "Clear the message log.",
+                lambda _: (self.messages_lv.clear(), (False, ""))[1],
+            ),
+            Command(
                 "online",
                 "List all online users.",
                 lambda _: (
@@ -141,14 +156,9 @@ class ChatApp(App):
                         if len(args) == 1
                         else None
                     ),
-                    (False, "" if len(args) == 1 else "Please provide a username"),
+                    (False, "" if len(args) > 0 else "Please provide a new username."),
                 )[1],
                 "<new username>",
-            ),
-            Command(
-                "clear",
-                "Clear the message log.",
-                lambda _: (self.messages_lv.clear(), (False, ""))[1],
             ),
             # Internal Utility Commands
             Command(
@@ -168,11 +178,16 @@ class ChatApp(App):
             Command(
                 "me",
                 "Sends a message as an action (italicized)",
-                lambda args: (True, f"_{' '.join(args)}_"),
+                lambda args: (
+                    (True, f"_{' '.join(args)}_")
+                    if len(args) > 0
+                    else (False, "Please provide a message.")
+                ),
+                "<message>",
             ),
             Command(
                 "shrug",
-                "Adds a shrug to the end of your message",
+                "Add a shrug to the end of your message.",
                 lambda args: (
                     True,
                     rf"{' '.join(args)} ¯\\\_(ツ)\_/¯",
@@ -181,7 +196,7 @@ class ChatApp(App):
             ),
             Command(
                 "flip",
-                "Adds a flip to the end of your message",
+                "Add a flip to the end of your message.",
                 lambda args: (
                     True,
                     rf"{' '.join(args)} (╯°□°）╯︵ ┻━┻",
@@ -190,7 +205,7 @@ class ChatApp(App):
             ),
             Command(
                 "unflip",
-                "Adds an unflip to the end of your message",
+                "Add an unflip to the end of your message.",
                 lambda args: (
                     True,
                     rf"{' '.join(args)} ┬─┬ ノ( ゜-゜ノ)",
@@ -360,7 +375,9 @@ class ChatApp(App):
         chat_log = "\n".join(
             str(message) for message in self.messages_lv.query("TextMessage").results()
         )
-        folderpath = os.path.expanduser("~/Documents/CIM-Chat-Client/logs").replace("\\", "/")
+        folderpath = os.path.expanduser("~/Documents/CIM-Chat-Client/logs").replace(
+            "\\", "/"
+        )
         filename = f"chat_log_{int(time())}.txt"
         filepath = os.path.join(folderpath, filename)
         try:
@@ -371,7 +388,13 @@ class ChatApp(App):
             self.add_message(ErrorMessage(Strings.UI.CHAT_LOG_SAVE_FAILED))
             return
         self.add_message(
-            CommandResponseMessage(Strings.UI.CHAT_LOG_SAVED.format(folderpath=escape(folderpath), filename=escape(filename), filepath=escape(filepath)))
+            CommandResponseMessage(
+                Strings.UI.CHAT_LOG_SAVED.format(
+                    folderpath=escape(folderpath),
+                    filename=escape(filename),
+                    filepath=escape(filepath),
+                )
+            )
         )
 
 
@@ -470,7 +493,7 @@ if __name__ == "__main__":
         # Initial server connection: health check
         while True:
             try:
-                r_health = requests.get(f"{address}/health", timeout=3)
+                r_health = requests.get(f"{address}/health", timeout=CONNECT_TIMEOUT)
                 break
             except requests.exceptions.RequestException:
                 # If a port has been specified, or we've already tried the default port, don't try again

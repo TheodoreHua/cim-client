@@ -2,6 +2,8 @@ VERSION = "0.1.0"  # The version of the client
 GITHUB_CLIENT = "https://github.com/TheodoreHua/cim-client"
 GITHUB_SERVER = "https://github.com/TheodoreHua/cim-server"
 
+CONNECT_TIMEOUT = 2  # The timeout for the initial connection attempt
+
 
 class Strings:  # TODO: Reformat
     """Global strings for the application."""
