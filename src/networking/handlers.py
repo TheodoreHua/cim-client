@@ -307,3 +307,4 @@ class ServerHandler(GenericHandler):
 
 class P2PHandler(GenericHandler):
     """Handler for P2P connections"""
+    # TODO

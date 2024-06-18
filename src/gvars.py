@@ -1,7 +1,7 @@
 VERSION = "0.0.1"  # The version of the client
 
 
-class Strings:
+class Strings:  # TODO: Reformat
     """Global strings for the application."""
 
     class UI:
