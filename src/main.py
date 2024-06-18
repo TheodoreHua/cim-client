@@ -105,6 +105,7 @@ class ChatApp(App):
 
     def init_commands(self):
         """Initialize all supported commands"""
+        # TODO: Complete remake of command system to allow for more complex commands, and less lambda spaghetti
         commands = [
             # Management Commands
             Command(
@@ -373,8 +374,6 @@ if __name__ == "__main__":
     import argparse
     import requests
 
-    #
-    # # TODO: Streamline startup process, check address validity, etc.
     parser = argparse.ArgumentParser(
         description="CIM (Command [Line] Instant Messenger) Client - a simple chat client in the command line, capable of P2P & server-based messaging."
     )
