@@ -19,12 +19,15 @@ from networking import *
 
 
 class PaletteCommands(Provider):
+    """A provider for the Command Palette commands."""
+
     @property
     def _palette_commands(
         self,
     ) -> Tuple[
         Tuple[str, Union[Callable[[], Awaitable[Any]], Callable[[], Any]], str], ...
     ]:
+        """The commands from this provider"""
         app = self.app
         assert isinstance(app, ChatApp)
         return (
@@ -46,11 +49,7 @@ class PaletteCommands(Provider):
         )
 
     async def discover(self) -> Hits:
-        """Handle a request for the discovery commands for this provider.
-
-        Yields:
-            Commands that can be discovered.
-        """
+        """Handle a request for the discovery of commands from this provider."""
         for name, runnable, help_text in self._palette_commands:
             yield DiscoveryHit(
                 name,
@@ -59,6 +58,7 @@ class PaletteCommands(Provider):
             )
 
     async def search(self, query: str) -> Hits:
+        """Handle a search request for commands from this provider."""
         app = self.app
         assert isinstance(app, ChatApp)
 
@@ -231,65 +231,65 @@ class ChatApp(App):
 
     def init_network_handler_subscriptions(self):
         """Add all necessary network handler subscriptions"""
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_message",
             lambda sender, message: self.call_from_thread(
                 lambda: self.add_message(TextMessage(sender, message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_motd",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(MOTDMessage(message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_event",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(EventMessage(message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_server",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(ServerMessage(message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_system",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(SystemMessage(message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_warning",
             lambda message: self.call_from_thread(
                 lambda: self.add_message(WarnMessage(message))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "display_error",
             lambda message, fatal=False: self.call_from_thread(
                 lambda: self.add_message(ErrorMessage(message, fatal))
             ),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "handle_reconnect", lambda: self.call_from_thread(self.text_bar.enable)
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "handle_disconnect",
             lambda: self.call_from_thread(self.text_bar.disable),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "handle_error",
             lambda type_: self.call_from_thread(lambda: self.handle_error(type_)),
         )
-        self.network_handler.subscribe(
+        self.network_handler.observe(
             "handle_fatal_error",
             lambda type_: self.call_from_thread(lambda: self.handle_fatal_error(type_)),
         )
-        self.network_handler.subscribe("handle_username_update", self.set_username)
-        self.network_handler.subscribe(
+        self.network_handler.observe("handle_username_update", self.set_username)
+        self.network_handler.observe(
             "set_length_limit",
             lambda limit: self.call_from_thread(
                 lambda: self.text_bar.set_length_limit(limit)

@@ -9,7 +9,30 @@ import socketio.exceptions
 from gvars import *
 
 
-class GenericHandler(ABC):
+class Observable:
+    EXPECTED_TYPES = ()
+
+    def __init__(self):
+        self._observers = defaultdict(list)
+
+    def observe(self, type_: str, observer: Callable):
+        if type_ not in self.EXPECTED_TYPES:
+            raise ValueError(f"Invalid type: {type_}")
+        self._observers[type_].append(observer)
+
+    def unobserve(self, type_: str, observer: Callable):
+        if type_ not in self.EXPECTED_TYPES:
+            raise ValueError(f"Invalid type: {type_}")
+        self._observers[type_].remove(observer)
+
+    def _notify(self, type_: str, *args, **kwargs):
+        if type_ not in self.EXPECTED_TYPES:
+            raise ValueError(f"Invalid type: {type_}")
+        for observer in self._observers[type_]:
+            observer(*args, **kwargs)
+
+
+class GenericHandler(Observable, ABC):
     """Generic handler for connections - should not be used directly"""
 
     EXPECTED_TYPES = (
@@ -28,28 +51,6 @@ class GenericHandler(ABC):
         "handle_username_update",
         "set_length_limit",
     )
-
-    def __init__(self):
-        self._handlers = defaultdict(list)
-
-    def subscribe(self, type_: str, subscriber: Callable):
-        """Subscribe to a specific event type. Event should be one of the expected types."""
-        if type_ not in self.EXPECTED_TYPES:
-            raise ValueError(f"Invalid type: {type_}")
-        self._handlers[type_].append(subscriber)
-
-    def unsubscribe(self, type_: str, subscriber: Callable):
-        """Unsubscribe from a specific event type. Event should be one of the expected types."""
-        if type_ not in self.EXPECTED_TYPES:
-            raise ValueError(f"Invalid type: {type_}")
-        self._handlers[type_].remove(subscriber)
-
-    def notify(self, type_: str, *args, **kwargs):
-        """Notify all subscribers of a specific event type. Event should be one of the expected types."""
-        if type_ not in self.EXPECTED_TYPES:
-            raise ValueError(f"Invalid type: {type_}")
-        for subscriber in self._handlers[type_]:
-            subscriber(*args, **kwargs)
 
     @abstractmethod
     def connect(self, username: str = None):
@@ -102,7 +103,7 @@ class ServerHandler(GenericHandler):
         def connect():
             """Called upon the initial connection to the server."""
             # All connection logic is handled in the connect_response event, we just notify in case wanted here
-            self.notify("handle_raw_connect")
+            self._notify("handle_raw_connect")
 
         # noinspection t
         @self.sock.event
@@ -124,37 +125,37 @@ class ServerHandler(GenericHandler):
             ):  # if the connection was successful, default to False
                 # Notify if this is a reconnect
                 if not self._first_connect:
-                    self.notify("handle_reconnect")
+                    self._notify("handle_reconnect")
                 else:
                     self._first_connect = False
 
                 # Notify that we've connected to the server
-                self.notify("display_system", Strings.Server.CONNECTION_ESTABLISHED)
+                self._notify("display_system", Strings.Server.CONNECTION_ESTABLISHED)
 
                 # Display the MOTD
                 if "motd" in data and data["motd"] is not None:
-                    self.notify("display_motd", data["motd"])
+                    self._notify("display_motd", data["motd"])
 
                 if "length_limit" in data:
-                    self.notify("set_length_limit", data["length_limit"])
+                    self._notify("set_length_limit", data["length_limit"])
 
                 # Handle username-related flags
                 if "username_missing" in flags:
-                    self.notify(
+                    self._notify(
                         "display_system",
                         Strings.Server.USERNAME_INITIAL_MISSING.format(
                             username=data.get("username", "UNKNOWN")
                         ),
                     )
                 elif "username_invalid" in flags:
-                    self.notify(
+                    self._notify(
                         "display_system",
                         Strings.Server.USERNAME_INITIAL_INVALID.format(
                             username=data.get("username", "UNKNOWN")
                         ),
                     )
                 elif "username_taken" in flags:
-                    self.notify(
+                    self._notify(
                         "display_system",
                         Strings.Server.USERNAME_INITIAL_TAKEN.format(
                             username=data.get("username", "UNKNOWN")
@@ -172,7 +173,7 @@ class ServerHandler(GenericHandler):
             :param data: The data sent by the server, expected:
                 | username: The username of the user that connected
             """
-            self.notify(
+            self._notify(
                 "display_event",
                 Strings.Server.USER_CONNECTED.format(
                     username=data.get("username", "UNKNOWN")
@@ -182,8 +183,8 @@ class ServerHandler(GenericHandler):
         @self.sock.event
         def disconnect():
             """Called upon disconnection from the server."""
-            self.notify("handle_disconnect")
-            self.notify("display_system", Strings.Server.CONNECTION_DROPPED)
+            self._notify("handle_disconnect")
+            self._notify("display_system", Strings.Server.CONNECTION_DROPPED)
 
         @self.sock.event
         def disconnect_broadcast(data: dict):
@@ -192,7 +193,7 @@ class ServerHandler(GenericHandler):
             :param data: The data sent by the server, expected:
                 | username: The username of the user that disconnected
             """
-            self.notify(
+            self._notify(
                 "display_event",
                 Strings.Server.USER_DISCONNECTED.format(
                     username=data.get("username", "UNKNOWN")
@@ -207,7 +208,7 @@ class ServerHandler(GenericHandler):
                 | sender: The username of the user that sent the message
                 | message: The message that was sent
             """
-            self.notify(
+            self._notify(
                 "display_message",
                 data.get("sender", "UNKNOWN"),
                 data.get("message", "UNKNOWN"),
@@ -220,7 +221,7 @@ class ServerHandler(GenericHandler):
             :param data: The data sent by the server, expected:
                 | message: The message that was sent
             """
-            self.notify("display_server", data.get("message", "UNKNOWN"))
+            self._notify("display_server", data.get("message", "UNKNOWN"))
 
         @self.sock.event
         def username_update_response(data: dict):
@@ -235,20 +236,20 @@ class ServerHandler(GenericHandler):
             if data.get("success", False):
                 username = data.get("username", None)
                 self.sock.connection_headers["username"] = username
-                self.notify("handle_username_update", username)
+                self._notify("handle_username_update", username)
                 return
             elif len(flags) > 0:
                 if "username_missing" in flags:
                     raise ValueError("Username missing")  # should not happen
                 elif "username_taken" in flags:
-                    return self.notify(
+                    return self._notify(
                         "display_system", Strings.Server.USERNAME_CHANGE_TAKEN
                     )
                 elif "username_invalid" in flags:
-                    return self.notify(
+                    return self._notify(
                         "display_system", Strings.Server.USERNAME_CHANGE_INVALID
                     )
-            self.notify("display_error", Strings.Server.USERNAME_CHANGE_UNKNOWN_ERROR)
+            self._notify("display_error", Strings.Server.USERNAME_CHANGE_UNKNOWN_ERROR)
 
         @self.sock.event
         def username_update_broadcast(data: dict):
@@ -258,7 +259,7 @@ class ServerHandler(GenericHandler):
                 | old: The old username
                 | new: The new username
             """
-            self.notify(
+            self._notify(
                 "display_event",
                 Strings.Server.USERNAME_CHANGE_EVENT.format(
                     old=data.get("old", "UNKNOWN"), new=data.get("new", "UNKNOWN")
@@ -276,12 +277,12 @@ class ServerHandler(GenericHandler):
             """
             if data.get("fatal", False):
                 if "message" in data and data["message"] is not None:
-                    self.notify("display_error", data["message"], fatal=True)
-                self.notify("handle_fatal_error", data.get("type", "UNKNOWN"))
+                    self._notify("display_error", data["message"], fatal=True)
+                self._notify("handle_fatal_error", data.get("type", "UNKNOWN"))
             else:
                 if "message" in data and data["message"] is not None:
-                    self.notify("display_error", data["message"])
-                self.notify("handle_error", data.get("type", "UNKNOWN"))
+                    self._notify("display_error", data["message"])
+                self._notify("handle_error", data.get("type", "UNKNOWN"))
 
     def connect(self, username: str = None) -> bool:
         """Connect to the server with the given username.

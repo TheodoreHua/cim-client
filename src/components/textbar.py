@@ -48,16 +48,22 @@ class TextBar(Input, can_focus=True):
         self.value = ""
 
     def enable(self):
+        """Enable the text bar, and set the placeholder to the default placeholder."""
         # noinspection PyTypeChecker
         self.disabled = False
         self.placeholder = Strings.UI.TEXT_BAR_PLACEHOLDER
 
     def disable(self):
+        """Disable the text bar, and set the placeholder to the disabled placeholder."""
         # noinspection PyTypeChecker
         self.disabled = True
         self.placeholder = Strings.UI.TEXT_BAR_DISABLED_PLACEHOLDER
 
     def set_length_limit(self, limit: int):
+        """Set the maximum message length.
+
+        :param limit: The maximum message length, in characters. Set to -1 for no limit.
+        """
         limit = None if limit == -1 else limit
         self.max_message_length = limit
         self.restrict = None if limit is None else rf"^(\/.*|.{{0,{limit}}})$"
