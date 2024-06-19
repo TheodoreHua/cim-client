@@ -35,4 +35,10 @@ There are precompiled executables in a portable format for Windows and Linux.
 7. You can now use the program through `python sim-client.py` (or `python3 sim-client.py`)
 
 ## Usage
+> [!IMPORTANT]
+> 
+> As this client makes use of a TUI (Text User Interface), it is recommended to run the program in a modern terminal emulator.
+> 
+> For Windows specifically, it is recommended to use Windows Terminal instead of the default Command Prompt. For Linux, almost all terminal emulators should work fine.
+
 The client is a command-line interface (CLI) program. Run the program with `python sim-client.py` (or `python3 sim-client.py`) to view the help message.
