@@ -37,7 +37,7 @@ There are precompiled executables in a portable format for Windows and Linux.
 ## Usage
 > [!IMPORTANT]
 > 
-> As this client makes use of a TUI (Text User Interface), it is recommended to run the program in a modern terminal emulator.
+> As this client makes use of a TUI (Terminal User Interface), it is recommended to run the program in a modern terminal emulator.
 > 
 > For Windows specifically, it is recommended to use Windows Terminal instead of the default Command Prompt. For Linux, almost all terminal emulators should work fine.
 
