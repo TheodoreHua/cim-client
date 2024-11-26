@@ -32,7 +32,7 @@ There are precompiled executables in a portable format for Windows and Linux.
     - Run `python -m venv venv` (or `python3 -m venv venv`) in the directory
     - Activate the virtual environment with `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (Linux)
 6. Install the required packages with `pip install -r requirements.txt`
-7. You can now use the program through `python sim-client.py` (or `python3 sim-client.py`)
+7. You can now use the program through `python src\main.py` (or `python3 src/main.py`)
 
 ## Usage
 > [!IMPORTANT]
@@ -41,4 +41,4 @@ There are precompiled executables in a portable format for Windows and Linux.
 > 
 > For Windows specifically, it is recommended to use Windows Terminal instead of the default Command Prompt. For Linux, almost all terminal emulators should work fine.
 
-The client is a command-line interface (CLI) program. Run the program with `python sim-client.py` (or `python3 sim-client.py`) to view the help message.
+The client is a command-line interface (CLI) program. Run the program with `python src\main.py` (or `python3 src/main.py`) to view the help message.
